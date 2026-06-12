@@ -1,0 +1,8 @@
+keys:
+  - &host_homedepot age12dpr5rupp8kw0wpgh57r6wtvq59ylx7l7lt7davsv3uqe9mfsajqa99gtt
+
+creation_rules:
+  - path_regex: secrets/secrets\.yaml$
+    key_groups:
+      - age:
+          - *host_homedepot

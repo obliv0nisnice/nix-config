@@ -1,0 +1,34 @@
+Bring up the Secure Enclave (SEP) on Apple t6020 (MacBook Pro 14" M2 Pro).
+
+Enables the SEP IOMMU (sep_dart) and the sep node, and adds a "sep" alias.
+The alias lets m1n1 dt_set_sep() inject the SEPFW reserved-memory region and
+the iboot/local-policy manifests; the DART is required for dma_map_resource()
+of that region. Missing alias -> -EINVAL (-22); missing DART -> -ENOMEM (-12).
+Touch ID reverse-engineering, step 3 (~/Projects/MacFingerprint).
+
+--- a/arch/arm64/boot/dts/apple/t6020-j414s.dts	2026-06-11 08:30:31.670670565 +0200
++++ b/arch/arm64/boot/dts/apple/t6020-j414s.dts	2026-06-11 08:30:31.678837032 +0200
+@@ -45,3 +45,23 @@
+ &mtp_mt {
+ 	firmware-name = "apple/tpmtfw-j414s.bin";
+ };
++
++/* Touch ID RE (step 3): bring up the SEP boot stub.
++ * - sep_dart (its IOMMU) and the sep node itself ship disabled -> enable both.
++ * - add the "sep" alias so m1n1 dt_set_sep() injects the sepfw reserved-memory
++ *   region + iboot/local-policy manifests.
++ * Without the DART, dma_map_resource() of sepfw fails -> -ENOMEM (-12);
++ * without the alias, probe fails earlier with -EINVAL (-22). */
++&sep_dart {
++	status = "okay";
++};
++
++&sep {
++	status = "okay";
++};
++
++/ {
++	aliases {
++		sep = &sep;
++	};
++};

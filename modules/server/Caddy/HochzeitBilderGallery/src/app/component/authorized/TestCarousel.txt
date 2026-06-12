@@ -1,0 +1,33 @@
+<!-- Carousel -->
+<div id="demo" class="carousel slide" data-bs-ride="carousel">
+  <!-- Indicators/dots -->
+  <div class="carousel-indicators">
+    <button *ngFor="let file of uploadedFiles; let i = index"
+            type="button"
+            [attr.data-bs-target]="'#demo'"
+            [attr.data-bs-slide-to]="i"
+            [class.active]="i === 0"></button>
+  </div>
+
+  <!-- The slideshow/carousel -->
+  <div class="carousel-inner">
+    <div class="carousel-item" [ngClass]="{active: i === 0}" *ngFor="let file of uploadedFiles; let i = index">
+      <ng-container [ngSwitch]="file.type">
+        <img *ngSwitchCase="'image'" [src]="file.url" alt="Bild" class="d-block w-100">
+        <video *ngSwitchCase="'video'" controls class="d-block w-100">
+          <source [src]="file.url" [attr.type]="file.type === 'video' ? 'video/mp4' : 'video/mov'">
+          Your browser does not support the video tag.
+        </video>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Left and right controls/icons -->
+  <button class="carousel-control-prev" type="button" data-bs-target="#demo" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon"></span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#demo" data-bs-slide="next">
+    <span class="carousel-control-next-icon"></span>
+  </button>
+</div>
+

@@ -1,0 +1,57 @@
+<div class="container-fluid d-flex align-items-center justify-content-center" style="height: 98vh;">
+  <pre>
+    ██░ ██ ▓█████  ██▓     ██▓     ▒█████     ▄▄▄█████▓ ██░ ██ ▓█████  ██▀███  ▓█████
+    ▓██░ ██▒▓█   ▀ ▓██▒    ▓██▒    ▒██▒  ██▒   ▓  ██▒ ▓▒▓██░ ██▒▓█   ▀ ▓██ ▒ ██▒▓█   ▀
+    ▒██▀▀██░▒███   ▒██░    ▒██░    ▒██░  ██▒   ▒ ▓██░ ▒░▒██▀▀██░▒███   ▓██ ░▄█ ▒▒███
+    ░▓█ ░██ ▒▓█  ▄ ▒██░    ▒██░    ▒██   ██░   ░ ▓██▓ ░ ░▓█ ░██ ▒▓█  ▄ ▒██▀▀█▄  ▒▓█  ▄
+    ░▓█▒░██▓░▒████▒░██████▒░██████▒░ ████▓▒░     ▒██▒ ░ ░▓█▒░██▓░▒████▒░██▓ ▒██▒░▒████▒
+    ▒ ░░▒░▒░░ ▒░ ░░ ▒░▓  ░░ ▒░▓  ░░ ▒░▒░▒░      ▒ ░░    ▒ ░░▒░▒░░ ▒░ ░░ ▒▓ ░▒▓░░░ ▒░ ░
+    ▒ ░▒░ ░ ░ ░  ░░ ░ ▒  ░░ ░ ▒  ░  ░ ▒ ▒░        ░     ▒ ░▒░ ░ ░ ░  ░  ░▒ ░ ▒░ ░ ░  ░
+    ░  ░░ ░   ░     ░ ░     ░ ░   ░ ░ ░ ▒       ░       ░  ░░ ░   ░     ░░   ░    ░
+    ░  ░  ░   ░  ░    ░  ░    ░  ░    ░ ░               ░  ░  ░   ░  ░   ░        ░  ░
+
+
+    <div class="btn-group position-absolute top-60 start-50 translate-middle">
+
+      <button type="button" class="btn custom-btn" data-bs-toggle="modal" data-bs-target="#login">Login</button>
+    </div>
+  </pre>
+
+  <!-- The Modal -->
+  <div class="modal" id="login">
+    <div class="modal-dialog align-items-center ">
+      <div class="modal-content">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h4 class="modal-title">Login</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <!-- Modal body -->
+        <div class="modal-body">
+          <div>
+            <label>
+              Username:
+              <input [(ngModel)]="username" />
+            </label>
+            <br />
+            <label>
+              Password:
+              <input type="password" [(ngModel)]="password" />
+            </label>
+            <br />
+            <button (click)="login($event) ">Login</button>
+          </div>
+          <div class="justify-content-center">{{ errorMessage }}</div>
+        </div>
+
+        <!-- Modal footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

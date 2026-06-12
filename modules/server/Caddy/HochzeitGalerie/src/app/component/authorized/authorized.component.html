@@ -1,0 +1,73 @@
+<div class="header-image-container">
+  <img src="./assets/images/IMG_0149%20Kopie.jpg" alt="Header Image" class="header-image" [style.opacity]="imageOpacity">
+</div>
+
+<div class="upload-container">
+  <h5>Bilder Upload</h5>
+  <p>Videos dauern oft etwas länger </p>
+  <p>Bitte um Geduld und das Handy bitte nicht sperren :)</p>
+  <input type="file" (change)="onFileSelected($event)" multiple />
+  <button class="btn btn-secondary" (click)="onUpload()">Upload</button>
+  <div class="progress mt-3" *ngIf="progress >= 0">
+    <div class="progress-bar"
+         role="progressbar"
+         [style.width.%]="progress"
+         [attr.aria-valuenow]="progress"
+         aria-valuemin="0"
+         aria-valuemax="100">
+      {{ progress }}%
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger mt-3">
+    {{ errorMessage }}
+  </div>
+</div>
+
+
+<!-- Modal Template -->
+<ng-template #mediaModal let-modal>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content modal-fixed-size">
+      <div class="modal-header">
+        <h5 class="modal-title">Galerie Viewer</h5>
+        <button type="button" class="btn-close" (click)="modal.dismiss('Cross click')"></button>
+      </div>
+      <div class="modal-body">
+        <ng-container [ngSwitch]="currentFile?.type">
+          <img *ngSwitchCase="'image'" [src]="currentFile?.url" class="img-fluid" alt="Bild" />
+          <video *ngSwitchCase="'video'" controls class="w-100">
+            <source [src]="currentFile?.url" [attr.type]="currentFile?.type === 'video' ? 'video/mp4' : 'video/mov'">
+            Your browser does not support the video tag.
+          </video>
+        </ng-container>
+        <button class="carousel-control-prev" type="button" (click)="prevFile()" [disabled]="!hasPrevious()" >
+          <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" (click)="nextFile()" [disabled]="!hasNext()" >
+          <span class="carousel-control-next-icon"></span>
+        </button>
+      </div>
+      <div class="modal-footer justify-content-between">
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Gallery Container -->
+<div class="gallery-container">
+  <h2>Galerie</h2>
+  <div class="gallery">
+    <div *ngFor="let file of uploadedFiles; let i = index" class="gallery-item">
+      <button class="btn p-0" (click)="open(file)">
+        <ng-container [ngSwitch]="file.type">
+          <img *ngSwitchCase="'image'" [src]="file.url" class="img-thumbnail" alt="Bild" />
+          <video *ngSwitchCase="'video'" controls class="w-100">
+            <source [src]="file.url" [attr.type]="file.type === 'video' ? 'video/mp4' : 'video/mov'">
+            Your browser does not support the video tag.
+          </video>
+        </ng-container>
+      </button>
+    </div>
+  </div>
+</div>

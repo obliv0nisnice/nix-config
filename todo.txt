@@ -1,0 +1,6 @@
+- Grafana für homeserver -> Cpu usage etc yoinken von kropatz github
+- module etc umbauen damit man nicht alles auf dem server hat server/pc pkgs trennen (profile check?)
+- Workflows weiter fixen: security-pipeline.yml hardcoded auf ./backend/src/HomeSuite.API/HomeSuite.API.csproj — pro Repo generischer Detect für Sprache/Build-Layout (Node/Python/Go/.NET/Rust)
+- Issue-Dedup im Workflow: Vermeiden dass bei jedem failenden Push ein neues Issue aufmacht (search by title vor create)
+- SonarQube SCM-Auth gegen Gitea einrichten damit Blame-Daten richtig laden
+- Dependency Track: dedizierte Teams + API-Keys pro Repo statt einer "Automation"-Key für alles

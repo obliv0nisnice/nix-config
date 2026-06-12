@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "dgSpecHash": "xjiwXWpDRZRdFD3KDox0h1PSL2Vttr2nhnw8ZWVqHIgWlX+XXIlZPk9DkoOqrRTqiSD462+4fylwl3PyriAiuw==",
+  "success": true,
+  "projectFilePath": "/home/jakob/github/projects/HomeDepot/Backend/HomeDepotBackend/HomeDepotBackend.csproj",
+  "expectedPackageFiles": [
+    "/home/jakob/.nuget/packages/bcrypt.net-next/4.0.3/bcrypt.net-next.4.0.3.nupkg.sha512",
+    "/home/jakob/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/6.0.31/microsoft.aspnetcore.authentication.jwtbearer.6.0.31.nupkg.sha512",
+    "/home/jakob/.nuget/packages/microsoft.extensions.apidescription.server/6.0.5/microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
+    "/home/jakob/.nuget/packages/microsoft.identitymodel.abstractions/7.6.0/microsoft.identitymodel.abstractions.7.6.0.nupkg.sha512",
+    "/home/jakob/.nuget/packages/microsoft.identitymodel.jsonwebtokens/7.6.0/microsoft.identitymodel.jsonwebtokens.7.6.0.nupkg.sha512",
+    "/home/jakob/.nuget/packages/microsoft.identitymodel.logging/7.6.0/microsoft.identitymodel.logging.7.6.0.nupkg.sha512",
+    "/home/jakob/.nuget/packages/microsoft.identitymodel.protocols/6.35.0/microsoft.identitymodel.protocols.6.35.0.nupkg.sha512",
+    "/home/jakob/.nuget/packages/microsoft.identitymodel.protocols.openidconnect/6.35.0/microsoft.identitymodel.protocols.openidconnect.6.35.0.nupkg.sha512",
+    "/home/jakob/.nuget/packages/microsoft.identitymodel.tokens/7.6.0/microsoft.identitymodel.tokens.7.6.0.nupkg.sha512",
+    "/home/jakob/.nuget/packages/microsoft.openapi/1.2.3/microsoft.openapi.1.2.3.nupkg.sha512",
+    "/home/jakob/.nuget/packages/newtonsoft.json/13.0.3/newtonsoft.json.13.0.3.nupkg.sha512",
+    "/home/jakob/.nuget/packages/swashbuckle.aspnetcore/6.5.0/swashbuckle.aspnetcore.6.5.0.nupkg.sha512",
+    "/home/jakob/.nuget/packages/swashbuckle.aspnetcore.swagger/6.5.0/swashbuckle.aspnetcore.swagger.6.5.0.nupkg.sha512",
+    "/home/jakob/.nuget/packages/swashbuckle.aspnetcore.swaggergen/6.5.0/swashbuckle.aspnetcore.swaggergen.6.5.0.nupkg.sha512",
+    "/home/jakob/.nuget/packages/swashbuckle.aspnetcore.swaggerui/6.5.0/swashbuckle.aspnetcore.swaggerui.6.5.0.nupkg.sha512",
+    "/home/jakob/.nuget/packages/system.identitymodel.tokens.jwt/7.6.0/system.identitymodel.tokens.jwt.7.6.0.nupkg.sha512"
+  ],
+  "logs": []
+}

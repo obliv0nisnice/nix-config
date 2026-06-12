@@ -1,0 +1,122 @@
+/* Fancy Arrow Styles */
+.btn-secondary {
+  position: relative;
+}
+
+.btn-secondary i {
+  font-size: 1.5rem;
+}
+
+.modal-footer .btn {
+  display: flex;
+  align-items: center;
+}
+
+/* Space between buttons */
+.modal-footer .btn:not(:last-child) {
+  margin-right: 10px;
+}
+
+/* Begrenzung der Größe des Modals */
+.modal-content {
+  max-width: 90vw; /* Maximale Breite von 90% der Ansichtsbreite */
+  max-height: 85vh; /* Maximale Höhe von 90% der Ansichtshöhe */
+  overflow: hidden; /* Verhindert Überlauf */
+}
+
+/* Begrenzung der Größe von Bildern innerhalb des Modals */
+.modal-body .modal-image {
+  max-width: 100%; /* Bild passt sich der maximalen Breite des Modals an */
+  max-height: 80vh; /* Maximale Höhe von 80% der Ansichtshöhe */
+  object-fit: contain; /* Behält das Seitenverhältnis des Bildes bei */
+}
+
+
+/* Ensure images and videos fit within the modal body */
+.modal-body img,
+.modal-body video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* Ensure the content scales without being distorted */
+}
+
+/* Flexbox to center content */
+.modal-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header-image-container {
+  width: 100%;
+  height: 100vh; /* Full viewport height */
+  position: relative;
+  text-align: center;
+  overflow: hidden;
+}
+
+.header-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the image covers the entire container */
+  transition: opacity 0.5s ease;
+}
+
+.upload-container {
+  border: 2px solid; /* Farbe der Umrandung (hier blau) */
+  padding: 10px; /* Innenabstand */
+  border-radius: 5px; /* Ecken leicht abrunden */
+  margin: 10px 0; /* Außenabstand oben und unten */
+}
+
+.upload-container, .gallery-container {
+  margin-top: 200px; /* Abstand, um das Bild sichtbar zu machen */
+}
+.upload-container, .gallery-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin: 20px;
+  border-radius: 15px;
+}
+
+.upload-container input {
+  margin-bottom: 10px; /* Abstand zwischen input und button */
+  margin-top: 10px;
+}
+
+.upload-container button {
+  margin-top: 10px; /* Optionaler Abstand oben für zusätzliche Feinabstimmung */
+}
+
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.gallery-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 15px; /* Abgerundete Ecken für das Container-Element */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-item img,
+.gallery-item video {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 15px; /* Abgerundete Ecken für die Bilder */
+  object-fit: cover; /* Sicherstellen, dass das Bild den Container ausfüllt */
+}
+
+@media (max-width: 480px) {
+  .header-image-container {
+    height: 50vh; /* Reduce header height on small screens */
+  }
+}

@@ -1,0 +1,3 @@
+{
+  plugins = { refactoring.enable = true; };
+}

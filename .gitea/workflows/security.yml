@@ -1,0 +1,383 @@
+name: Security & Quality Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - "feature/**"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # ─────────────────────────────────────────────
+  # 1. SonarQube – Code-Qualität & statische Analyse
+  # ─────────────────────────────────────────────
+  sonarqube:
+    name: SonarQube Analysis
+    runs-on: ubuntu-latest
+
+    outputs:
+      qualitygate: ${{ steps.scan.outputs.qualitygate }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install sonar-scanner CLI
+        env:
+          SCANNER_VERSION: 6.2.1.4610
+        run: |
+          set -e
+          apt-get update
+          apt-get install -y --no-install-recommends unzip openjdk-17-jre-headless
+          curl -fsSL -o /tmp/scanner.zip \
+            "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SCANNER_VERSION}-linux-x64.zip"
+          unzip -q /tmp/scanner.zip -d /opt
+          ln -sf /opt/sonar-scanner-${SCANNER_VERSION}-linux-x64/bin/sonar-scanner /usr/local/bin/sonar-scanner
+
+      - id: scan
+        name: SonarQube scan
+        continue-on-error: true
+        env:
+          REPO: ${{ gitea.repository }}
+        run: |
+          set -e
+          PROJECT_KEY="${REPO//\//_}"
+          if sonar-scanner \
+            -Dsonar.projectKey="$PROJECT_KEY" \
+            -Dsonar.host.url="${{ vars.SONAR_HOST_URL }}" \
+            -Dsonar.token="${{ secrets.SONAR_TOKEN }}" \
+            -Dsonar.sources=. \
+            -Dsonar.exclusions="**/out/**,**/bin/**,**/obj/**,**/node_modules/**,**/dist/**,**/build/**,**/.scannerwork/**,**/result,**/*.mp4,**/*.p7s,**/*.dll,**/*.pdb,**/*.nupkg,**/*.snupkg" \
+            -Dsonar.qualitygate.wait=true; then
+            echo "qualitygate=passed" >> $GITHUB_OUTPUT
+          else
+            echo "qualitygate=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: SonarQube Result Link
+        if: always()
+        env:
+          REPO: ${{ gitea.repository }}
+        run: |
+          PROJECT_KEY="${REPO//\//_}"
+          echo "## SonarQube" >> $GITHUB_STEP_SUMMARY
+          echo "Dashboard: ${{ vars.SONAR_HOST_URL }}/dashboard?id=$PROJECT_KEY" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create Gitea Issue on Quality Gate Failure
+        if: failure() && steps.scan.outputs.qualitygate == 'failed'
+        env:
+          GITEA_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ gitea.repository }}
+          SHA: ${{ gitea.sha }}
+          REF: ${{ gitea.ref_name }}
+          RUN_URL: ${{ gitea.server_url }}/${{ gitea.repository }}/actions/runs/${{ gitea.run_id }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+          GITEA_API_URL: ${{ gitea.api_url }}
+        run: |
+          PROJECT_KEY="${REPO//\//_}"
+          DASHBOARD="${SONAR_HOST_URL}/dashboard?id=$PROJECT_KEY"
+          TITLE="[SonarQube] Quality Gate failed on ${REF} (${SHA:0:7})"
+          BODY=$(printf '%s\n' \
+            "Das SonarQube Quality Gate ist für **${REF}** (Commit \`${SHA}\`) fehlgeschlagen." \
+            "" \
+            "- **Dashboard:** ${DASHBOARD}" \
+            "- **Workflow Run:** ${RUN_URL}" \
+            "" \
+            "Bitte die im SonarQube-Dashboard aufgeführten Issues prüfen und beheben.")
+          PAYLOAD=$(TITLE="$TITLE" BODY="$BODY" python3 -c \
+            "import os,json,sys; sys.stdout.write(json.dumps({'title':os.environ['TITLE'],'body':os.environ['BODY'],'labels':['security','sonarqube']}))")
+          curl -fsSL \
+            -X POST "${GITEA_API_URL}/repos/${REPO}/issues" \
+            -H "Authorization: token ${GITEA_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"
+
+  # ─────────────────────────────────────────────
+  # 2. Dependency Track – SBOM & Vulnerability-Check
+  # ─────────────────────────────────────────────
+  dependency-track:
+    name: Dependency Track
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install syft
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - id: sbom
+        name: Generate SBOM
+        run: |
+          set -e
+          syft scan dir:. \
+            --exclude './**/out/**' \
+            --exclude './**/bin/**' \
+            --exclude './**/obj/**' \
+            --exclude './**/node_modules/**' \
+            --exclude './**/dist/**' \
+            --exclude './**/build/**' \
+            -o cyclonedx-xml=./sbom.xml
+          COMP_COUNT=$(grep -c "<component " ./sbom.xml || true)
+          COMP_COUNT=${COMP_COUNT:-0}
+          echo "Components detected: $COMP_COUNT"
+          echo "components=$COMP_COUNT" >> $GITHUB_OUTPUT
+
+      - name: Upload SBOM to Dependency Track
+        if: steps.sbom.outputs.components != '0'
+        run: |
+          PROJECT_NAME=$(echo "${{ gitea.repository }}" | cut -d'/' -f2)
+          RESPONSE=$(curl -s -o /tmp/dt-response.json -w "%{http_code}" \
+            -X POST "${{ vars.DTRACK_API_URL }}/api/v1/bom" \
+            -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" \
+            -H "Content-Type: multipart/form-data" \
+            -F "autoCreate=true" \
+            -F "projectName=${PROJECT_NAME}" \
+            -F "projectVersion=${{ gitea.ref_name }}" \
+            -F "bom=@./sbom.xml")
+          echo "HTTP Status: $RESPONSE"
+          cat /tmp/dt-response.json
+          if [ "$RESPONSE" -ne 200 ]; then
+            echo "::error::SBOM-Upload fehlgeschlagen (HTTP $RESPONSE)"
+            exit 1
+          fi
+          TOKEN=$(python3 -c "import sys,json; print(json.load(open('/tmp/dt-response.json')).get('token',''))")
+          echo "DTRACK_TOKEN=$TOKEN" >> $GITHUB_ENV
+
+      - name: Wait for Dependency Track processing
+        if: steps.sbom.outputs.components != '0'
+        run: |
+          for i in $(seq 1 20); do
+            sleep 15
+            STATUS=$(curl -s \
+              "${{ vars.DTRACK_API_URL }}/api/v1/bom/token/$DTRACK_TOKEN" \
+              -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" | \
+              python3 -c "import sys,json; print(json.load(sys.stdin).get('processing', True))")
+            echo "Attempt $i: processing=$STATUS"
+            [ "$STATUS" = "False" ] && break
+          done
+
+      - id: summary
+        name: Fetch Vulnerability Summary
+        if: steps.sbom.outputs.components != '0'
+        continue-on-error: true
+        env:
+          DTRACK_API_URL: ${{ vars.DTRACK_API_URL }}
+          DTRACK_API_KEY: ${{ secrets.DTRACK_API_KEY }}
+          REPO: ${{ gitea.repository }}
+          REF: ${{ gitea.ref_name }}
+        run: |
+          set -e
+          PROJECT_NAME=$(echo "$REPO" | cut -d'/' -f2)
+          UUID=$(curl -s \
+            "${DTRACK_API_URL}/api/v1/project?name=${PROJECT_NAME}&version=${REF}" \
+            -H "X-Api-Key: ${DTRACK_API_KEY}" | \
+            python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['uuid'] if d else '')")
+          if [ -z "$UUID" ]; then
+            echo "::warning::Projekt nicht gefunden"
+            exit 0
+          fi
+          curl -s \
+            "${DTRACK_API_URL}/api/v1/metrics/project/$UUID/current" \
+            -H "X-Api-Key: ${DTRACK_API_KEY}" \
+            -o /tmp/metrics.json
+
+          CRITICAL=$(python3 -c "import json; print(json.load(open('/tmp/metrics.json')).get('critical',0))")
+          HIGH=$(python3 -c "import json; print(json.load(open('/tmp/metrics.json')).get('high',0))")
+          MEDIUM=$(python3 -c "import json; print(json.load(open('/tmp/metrics.json')).get('medium',0))")
+          LOW=$(python3 -c "import json; print(json.load(open('/tmp/metrics.json')).get('low',0))")
+          TOTAL=$(python3 -c "import json; print(json.load(open('/tmp/metrics.json')).get('vulnerabilities',0))")
+
+          {
+            echo "## Dependency Track Ergebnis"
+            echo ""
+            echo "| Severity | Count |"
+            echo "|----------|-------|"
+            echo "| Critical | $CRITICAL |"
+            echo "| High     | $HIGH |"
+            echo "| Medium   | $MEDIUM |"
+            echo "| Low      | $LOW |"
+            echo "| Total    | $TOTAL |"
+          } >> $GITHUB_STEP_SUMMARY
+
+      - name: Sync DT findings to Gitea issues
+        if: steps.sbom.outputs.components != '0'
+        env:
+          DTRACK_API_URL: ${{ vars.DTRACK_API_URL }}
+          DTRACK_API_KEY: ${{ secrets.DTRACK_API_KEY }}
+          GITEA_API_URL: ${{ gitea.server_url }}/api/v1
+          GITEA_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ gitea.repository }}
+          REF: ${{ gitea.ref_name }}
+          RUN_URL: ${{ gitea.server_url }}/${{ gitea.repository }}/actions/runs/${{ gitea.run_id }}
+        run: |
+          python3 << 'PYEOF'
+          import json, os, urllib.parse, urllib.request
+          from urllib.error import HTTPError, URLError
+
+          DT_URL = os.environ['DTRACK_API_URL'].rstrip('/')
+          DT_KEY = os.environ['DTRACK_API_KEY']
+          GITEA_URL = os.environ['GITEA_API_URL'].rstrip('/')
+          GITEA_TOKEN = os.environ['GITEA_TOKEN']
+          REPO = os.environ['REPO']
+          REF = os.environ['REF']
+          RUN_URL = os.environ['RUN_URL']
+
+          print(f"DT_URL={DT_URL}")
+          print(f"GITEA_URL={GITEA_URL}")
+          print(f"REPO={REPO}  REF={REF}")
+
+          PROJECT_NAME = REPO.split('/', 1)[1]
+
+          def http(method, url, headers=None, body=None):
+              h = dict(headers or {})
+              data = None
+              if body is not None:
+                  data = json.dumps(body).encode()
+                  h.setdefault('Content-Type', 'application/json')
+              req = urllib.request.Request(url, data=data, method=method, headers=h)
+              try:
+                  with urllib.request.urlopen(req) as resp:
+                      text = resp.read().decode()
+                      return resp.status, (json.loads(text) if text else None)
+              except HTTPError as e:
+                  body_text = e.read().decode(errors='replace')[:500]
+                  raise SystemExit(f"HTTP {e.code} on {method} {url}: {body_text}")
+              except URLError as e:
+                  raise SystemExit(f"URL error on {method} {url}: {e.reason}")
+
+          # 1. DT project lookup
+          q = urllib.parse.urlencode({'name': PROJECT_NAME, 'version': REF})
+          _, projects = http('GET', f"{DT_URL}/api/v1/project?{q}", {'X-Api-Key': DT_KEY})
+          if not projects:
+              print(f"DT project not found: {PROJECT_NAME}@{REF}")
+              raise SystemExit(0)
+          uuid = projects[0]['uuid']
+
+          # 2. DT findings
+          _, findings = http('GET', f"{DT_URL}/api/v1/finding/project/{uuid}",
+                             {'X-Api-Key': DT_KEY})
+          findings = findings or []
+
+          # 3. Ensure labels exist
+          label_defs = {
+              'security': 'd73a4a',
+              'dependency-track': '0e8a16',
+              'accepted': '7057ff',
+              'severity:critical': 'b60205',
+              'severity:high': 'd93f0b',
+              'severity:medium': 'fbca04',
+              'severity:low': '0e8a16',
+              'severity:unassigned': 'cccccc',
+          }
+          _, existing_labels = http('GET', f"{GITEA_URL}/repos/{REPO}/labels?limit=50",
+                                    {'Authorization': f'token {GITEA_TOKEN}'})
+          have = {l['name'] for l in (existing_labels or [])}
+          for name, color in label_defs.items():
+              if name not in have:
+                  http('POST', f"{GITEA_URL}/repos/{REPO}/labels",
+                       {'Authorization': f'token {GITEA_TOKEN}'},
+                       {'name': name, 'color': color})
+
+          # 4. Existing DT issues (paginated)
+          existing = []
+          page = 1
+          while True:
+              q = urllib.parse.urlencode({
+                  'state': 'all', 'labels': 'dependency-track',
+                  'page': page, 'limit': 50, 'type': 'issues',
+              })
+              _, batch = http('GET', f"{GITEA_URL}/repos/{REPO}/issues?{q}",
+                              {'Authorization': f'token {GITEA_TOKEN}'})
+              batch = batch or []
+              existing.extend(batch)
+              if len(batch) < 50:
+                  break
+              page += 1
+          by_title = {i['title']: i for i in existing}
+
+          # 5. Build desired issue set
+          def title_for(f):
+              c = f['component']
+              v = f['vulnerability']
+              return f"[DT] {v['vulnId']} in {c['name']}@{c.get('version','?')}"
+
+          def body_for(f):
+              c = f['component']
+              v = f['vulnerability']
+              sev = (v.get('severity') or 'UNASSIGNED').lower()
+              lines = [
+                  f"**Vulnerability:** `{v['vulnId']}`",
+                  f"**Component:** `{c['name']}@{c.get('version','?')}`",
+                  f"**Severity:** {sev}",
+              ]
+              if c.get('purl'):
+                  lines.append(f"**PURL:** `{c['purl']}`")
+              if v.get('source'):
+                  lines.append(f"**Source:** {v['source']}")
+              desc = v.get('description') or ''
+              if desc:
+                  lines += ["", desc.strip()[:1500]]
+              lines += ["", f"Workflow Run: {RUN_URL}", "",
+                        "---",
+                        "Add the **accepted** label to acknowledge this finding. "
+                        "Accepted issues are never reopened or auto-closed by the pipeline."]
+              return "\n".join(lines)
+
+          desired = {title_for(f): f for f in findings}
+
+          created = reopened = closed = skipped_accepted = unchanged = 0
+
+          # 6. Sync expected → issues
+          for title, f in desired.items():
+              sev = (f['vulnerability'].get('severity') or 'UNASSIGNED').lower()
+              sev_label = f"severity:{sev}" if f"severity:{sev}" in label_defs else 'severity:unassigned'
+              if title in by_title:
+                  issue = by_title[title]
+                  labels = {l['name'] for l in issue.get('labels', [])}
+                  if 'accepted' in labels:
+                      skipped_accepted += 1
+                      continue
+                  if issue['state'] == 'closed':
+                      http('PATCH',
+                           f"{GITEA_URL}/repos/{REPO}/issues/{issue['number']}",
+                           {'Authorization': f'token {GITEA_TOKEN}'},
+                           {'state': 'open'})
+                      reopened += 1
+                  else:
+                      unchanged += 1
+              else:
+                  http('POST', f"{GITEA_URL}/repos/{REPO}/issues",
+                       {'Authorization': f'token {GITEA_TOKEN}'},
+                       {
+                           'title': title,
+                           'body': body_for(f),
+                           'labels': ['security', 'dependency-track', sev_label],
+                       })
+                  created += 1
+
+          # 7. Close stale issues
+          for title, issue in by_title.items():
+              if title in desired:
+                  continue
+              labels = {l['name'] for l in issue.get('labels', [])}
+              if 'accepted' in labels:
+                  continue
+              if issue['state'] != 'open':
+                  continue
+              http('PATCH',
+                   f"{GITEA_URL}/repos/{REPO}/issues/{issue['number']}",
+                   {'Authorization': f'token {GITEA_TOKEN}'},
+                   {'state': 'closed'})
+              closed += 1
+
+          print(f"created={created} reopened={reopened} unchanged={unchanged} "
+                f"closed={closed} skipped_accepted={skipped_accepted}")
+          PYEOF
