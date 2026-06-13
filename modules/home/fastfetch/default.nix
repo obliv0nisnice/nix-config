@@ -1,4 +1,6 @@
-{
+{ ... }: {
+  imports = [ ./pokefetch.nix ];
+
   programs.fastfetch = {
     enable = true;
 

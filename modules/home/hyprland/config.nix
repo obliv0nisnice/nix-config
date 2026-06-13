@@ -107,6 +107,7 @@ in {
         ];
       };
 
+      #TODO: mehr auf variablen ${} umstellen
       bind = [
         "$modifier,Return,exec,${terminal}"
         "$modifier,SPACE,exec,rofi-launcher"

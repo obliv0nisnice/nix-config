@@ -24,7 +24,7 @@
   clock24h = true;
 
   # Program Options
-  browser = "floorp"; # Set Default Browser
+  browser = "firefox"; # Set Default Browser
   terminal = "kitty"; # Set Default System Terminal
   keyboardLayout = "de";
   consoleKeyMap = "de";
