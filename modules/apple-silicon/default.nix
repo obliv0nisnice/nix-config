@@ -12,5 +12,7 @@
     ./mullvad.nix
     ./netbird.nix
     ./touchid
+    #./firmware.nix
+    #./gpu.nix
   ];
 }

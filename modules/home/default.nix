@@ -10,6 +10,7 @@
     ./stylix.nix
     ./zsh.nix
   ] ++ lib.optionals machineProfiles.desktop.enable [
+    ../core/firefox
     ./gtk.nix
     ./hyprland
     ./kitty.nix

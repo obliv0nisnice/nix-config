@@ -20,6 +20,12 @@
     nixvim.url = "github:nix-community/nixvim";
     minegrub-world-sel-theme.url = "github:Lxtharia/minegrub-world-sel-theme";
 
+    # NUR — provides rycee's prebuilt firefox-addons used by the firefox module.
+    nur = {
+      url = "github:nix-community/NUR";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";

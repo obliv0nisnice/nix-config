@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  inputs,
   ...
 }:
 let
@@ -57,6 +58,7 @@ in
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.allowUnsupportedSystem = config.machineProfiles.allowUnsupported.enable;
   nixpkgs.overlays = [
+    inputs.nur.overlays.default
     (final: prev: {
       azurehound = prev.azurehound.overrideAttrs (_: {
         doCheck = false;

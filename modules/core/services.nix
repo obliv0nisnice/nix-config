@@ -16,6 +16,9 @@ in {
     openssh.enable = config.machineProfiles.remoteAccess.enable;
     flatpak.enable = config.machineProfiles.flatpak.enable;
     blueman.enable = config.machineProfiles.bluetooth.enable;
+    # Bis nixpkgs 26.05 transitiv reingezogen, in 26.11 nicht mehr -> explizit
+    # aktivieren (u.a. fürs Waybar power-profiles-daemon-Widget).
+    power-profiles-daemon.enable = config.machineProfiles.desktop.enable;
 
     xserver = {
       enable = false;
@@ -68,9 +71,14 @@ in {
 
   systemd.services.flatpak-repo = lib.mkIf config.machineProfiles.flatpak.enable {
     wantedBy = ["multi-user.target"];
+    # Braucht Netz/DNS. Nach network-online ordnen und Fehlschlag tolerieren, sonst
+    # bricht jeder Rebuild/Boot ohne (sofortige) Auflösung ab. --if-not-exists ist
+    # idempotent -> der nächste Boot mit Netz trägt das Remote nach.
+    after = ["network-online.target"];
+    wants = ["network-online.target"];
     path = [pkgs.flatpak];
     script = ''
-      flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+      flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo || true
     '';
   };
 
