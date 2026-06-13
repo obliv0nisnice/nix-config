@@ -1,6 +1,7 @@
 {inputs, ...}: {
   imports = [
     ./profiles.nix
+    ./profiles-from-vars.nix
     ./boot.nix
     ./fonts.nix
     ./hardware.nix

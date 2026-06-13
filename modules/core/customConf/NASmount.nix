@@ -3,10 +3,10 @@
 with lib;
 
 let
-  cfg = config.NASMount;
+  cfg = config.customConf.nasMount;
 in
 {
-  options.NASMount = {
+  options.customConf.nasMount = {
     enable = mkEnableOption "Mount NAS CIFS share for user home directory";
   };
 

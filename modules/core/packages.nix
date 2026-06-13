@@ -35,7 +35,7 @@ in
     virt-manager.enable = lib.mkDefault config.machineProfiles.virtualization.enable;
     mtr.enable = true;
 
-    steam = lib.mkIf (config.machineProfiles.gaming.enable && isx86) {
+    steam = lib.mkIf (config.machineProfiles.desktop.gaming.enable && isx86) {
       enable = true;
       remotePlay.openFirewall = true;
       localNetworkGameTransfers.openFirewall = true;
@@ -56,7 +56,7 @@ in
   };
 
   nixpkgs.config.allowUnfree = true;
-  nixpkgs.config.allowUnsupportedSystem = config.machineProfiles.allowUnsupported.enable;
+  nixpkgs.config.allowUnsupportedSystem = config.machineProfiles.apple.allowUnsupported.enable;
   nixpkgs.overlays = [
     inputs.nur.overlays.default
     (final: prev: {
@@ -198,7 +198,7 @@ in
       libvirt
       virt-viewer
     ]
-    ++ lib.optionals config.machineProfiles.communication.enable (
+    ++ lib.optionals config.machineProfiles.desktop.communication.enable (
       [
         thunderbird
         teams-for-linux
@@ -206,24 +206,24 @@ in
       ++ lib.optionals isx86 [ (discord.override { withVencord = true; }) ]
       ++ lib.optionals isAarch64 [ vesktop ]
     )
-    ++ lib.optionals (config.machineProfiles.gaming.enable && isx86) [
+    ++ lib.optionals (config.machineProfiles.desktop.gaming.enable && isx86) [
       heroic
       prismlauncher
     ]
-    ++ lib.optionals config.machineProfiles.copyTools.enable [
+    ++ lib.optionals config.machineProfiles.network.copyTools.enable [
       rsync
       rclone
       sshfs
       cifs-utils
     ]
-    ++ lib.optionals config.machineProfiles.dotnet.enable [
+    ++ lib.optionals config.machineProfiles.dev.dotnet.enable [
       dotnet-sdk_8
     ]
-    ++ lib.optionals config.machineProfiles.office.enable [
+    ++ lib.optionals config.machineProfiles.desktop.office.enable [
       libreoffice
       anki
     ]
-    ++ lib.optionals config.machineProfiles.vpn.enable [
+    ++ lib.optionals config.machineProfiles.network.vpn.enable [
       mullvad-vpn
       netbird
       wireguard-tools

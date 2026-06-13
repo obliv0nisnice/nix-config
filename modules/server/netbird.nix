@@ -7,12 +7,11 @@
   ...
 }:
 let
-  name = "netbird-client";
-  cfg = config.${name};
+  cfg = config.customConf.netbird;
 in
 {
 
-  options.${name} = {
+  options.customConf.netbird = {
     enable = lib.mkEnableOption "Enables netbird-client";
   };
 

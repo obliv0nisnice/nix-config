@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 
 {
-  config = lib.mkIf config.machineProfiles.reverseProxy.enable {
+  config = lib.mkIf config.machineProfiles.server.reverseProxy.enable {
     security.pki.certificateFiles = [
       ./certs/nestlerlabs.crt
       ./certs/step-ca-root.crt

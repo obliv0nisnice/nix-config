@@ -6,8 +6,8 @@
 }:
 
 let
-  cfg = config.machineProfiles.gitea.workflowProvisioner;
-  giteaCfg = config.machineProfiles.gitea;
+  cfg = config.machineProfiles.server.gitea.workflowProvisioner;
+  giteaCfg = config.machineProfiles.server.gitea;
 
   workflowFile = ./security-pipeline.yml;
   workflowPath = ".gitea/workflows/security.yml";
@@ -121,7 +121,7 @@ let
   };
 in
 {
-  options.machineProfiles.gitea.workflowProvisioner = {
+  options.machineProfiles.server.gitea.workflowProvisioner = {
     enable = lib.mkEnableOption "auto-provision security pipeline workflow into every Gitea repo" // {
       default = giteaCfg.enable;
     };

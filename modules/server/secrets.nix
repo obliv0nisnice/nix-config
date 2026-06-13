@@ -20,25 +20,25 @@ if !hasSecretsFile then {
     age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
     secrets = lib.mkMerge [
-      (lib.mkIf config.machineProfiles.sonarqube.enable {
+      (lib.mkIf config.machineProfiles.server.sonarqube.enable {
         "sonarqube/env" = {
           owner = "root";
           mode = "0400";
         };
       })
-      (lib.mkIf config.machineProfiles.dependencyTrack.enable {
+      (lib.mkIf config.machineProfiles.server.dependencyTrack.enable {
         "dependency-track/env" = {
           owner = "root";
           mode = "0400";
         };
       })
-      (lib.mkIf config.machineProfiles.homesuite.enable {
+      (lib.mkIf config.machineProfiles.server.homesuite.enable {
         "homesuite/env" = {
           owner = "homesuite";
           mode = "0400";
         };
       })
-      (lib.mkIf config.machineProfiles.gitea.enable {
+      (lib.mkIf config.machineProfiles.server.gitea.enable {
         "gitea/db-password" = {
           owner = "gitea";
           mode = "0400";
@@ -54,7 +54,7 @@ if !hasSecretsFile then {
           mode = "0400";
         };
       })
-      (lib.mkIf config.machineProfiles.stepCa.enable {
+      (lib.mkIf config.machineProfiles.server.stepCa.enable {
         "step-ca/intermediate-password" = {
           owner = "step-ca";
           mode = "0400";
@@ -64,6 +64,6 @@ if !hasSecretsFile then {
   };
 
   services.homesuite.environmentFile = lib.mkIf
-    config.machineProfiles.homesuite.enable
+    config.machineProfiles.server.homesuite.enable
     config.sops.secrets."homesuite/env".path;
 }

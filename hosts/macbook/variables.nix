@@ -28,5 +28,65 @@
   terminal = "kitty"; # Set Default System Terminal
   keyboardLayout = "de";
   consoleKeyMap = "de";
-  
+
+  # ---- Feature toggles (bridged into machineProfiles / customConf) ----
+  profiles = {
+    desktop = {
+      enable = true;
+      gaming.enable = false;
+      communication.enable = true;
+      flatpak.enable = true;
+      audio.enable = true;
+      printing.enable = true;
+      bluetooth.enable = true;
+      office.enable = true;
+      desktopIntegration.enable = true;
+      usbImaging.enable = true;
+    };
+
+    server = {
+      enable = false;
+      reverseProxy.enable = false;
+      adguard.enable = false;
+      media.enable = false;
+      audiobookshelf.enable = false;
+      homesuite.enable = false;
+      sonarqube.enable = false;
+      gitea.enable = false;
+      dependencyTrack.enable = false;
+      stepCa.enable = false;
+      nfsServer.enable = false;
+      serverBattery.enable = false;
+    };
+
+    network = {
+      remoteAccess.enable = true;
+      copyTools.enable = true;
+      vpn.enable = true;
+      networkDiscovery.enable = true;
+    };
+
+    security = {
+      enable = false;
+      pentest.enable = false;
+      exploitDev.enable = false;
+      reversing.enable = false;
+      networkAnalysis.enable = false;
+      remoteScan.enable = false;
+    };
+
+    apple = {
+      allowUnsupported.enable = false;
+      x86Emulation.enable = true;
+      batteryPerformance.enable = false;
+    };
+
+    virtualization.enable = true;
+    dev.dotnet.enable = false;
+  };
+
+  customConf = {
+    nasMount.enable = true;
+    fingerprint.enable = true;
+  };
 }

@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.machineProfiles.audiobookshelf;
+  cfg = config.machineProfiles.server.audiobookshelf;
 in
 {
   config = lib.mkIf cfg.enable {

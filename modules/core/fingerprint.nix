@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.fingerprint;
+  cfg = config.customConf.fingerprint;
 in
 {
-  options.fingerprint = {
+  options.customConf.fingerprint = {
     enable = lib.mkEnableOption "Enables fingerprint sensor support";
   };
 

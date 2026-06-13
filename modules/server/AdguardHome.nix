@@ -6,7 +6,7 @@
 }:
 
 {
-config = lib.mkIf config.machineProfiles.adguard.enable {
+config = lib.mkIf config.machineProfiles.server.adguard.enable {
 services.adguardhome =  {
     enable = true;
     openFirewall = true;

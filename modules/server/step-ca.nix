@@ -6,14 +6,14 @@
 }:
 
 let
-  cfg = config.machineProfiles.stepCa;
+  cfg = config.machineProfiles.server.stepCa;
   intermediatePasswordPath =
     if (config.sops.secrets or {}) ? "step-ca/intermediate-password"
     then config.sops.secrets."step-ca/intermediate-password".path
     else "/var/lib/step-ca/secrets/intermediate-password";
 in
 {
-  options.machineProfiles.stepCa = {
+  options.machineProfiles.server.stepCa = {
     domain = lib.mkOption {
       type = lib.types.str;
       default = "ca.nestlerlabs.at";

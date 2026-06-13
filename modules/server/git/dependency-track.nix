@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.machineProfiles.dependencyTrack;
+  cfg = config.machineProfiles.server.dependencyTrack;
   dataRoot = "/var/lib/dependency-track";
   networkName = "dtrack-net";
   hasSopsEnv = builtins.pathExists ../../../secrets/secrets.yaml;

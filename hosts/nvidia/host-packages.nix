@@ -1,33 +1,8 @@
-{pkgs, ...}: {
-  environment.systemPackages = with pkgs; [
+{ pkgs, ... }:
+{
+  # Host-specific packages only. Feature toggles live in ./variables.nix
+  # (profiles / customConf) and are bridged into the option system.
+  environment.systemPackages = with pkgs; [ ];
 
-  ];
-
-  machineProfiles = {
-    server.enable = false;
-    desktop.enable = true;
-    desktopIntegration.enable = true;
-    remoteAccess.enable = true;
-    copyTools.enable = true;
-    virtualization.enable = true;
-    gaming.enable = true;
-    communication.enable = true;
-    flatpak.enable = true;
-    audio.enable = true;
-    printing.enable = true;
-    bluetooth.enable = true;
-    security.enable = true;
-    reverseProxy.enable = false;
-    adguard.enable = false;
-    media.enable = false;
-    homesuite.enable = false;
-    nfsServer.enable = false;
-    serverBattery.enable = false;
-  };
-
-  NixOS-Sec-Toolbox.enable = false;
-
-  # NAS smb share
-  NASMount.enable = true;
-  fingerprint.enable = false;
+  programs.qylock.lockTheme = "pixel-hollowknight";
 }

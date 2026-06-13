@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.machineProfiles.sonarqube;
+  cfg = config.machineProfiles.server.sonarqube;
   dataRoot = "/var/lib/sonarqube";
   networkName = "sonarqube-net";
   hasSopsEnv = builtins.pathExists ../../../secrets/secrets.yaml;

@@ -19,7 +19,7 @@ in {
     };
   };
 
-  hardware.graphics.enable32Bit = config.machineProfiles.gaming.enable;
+  hardware.graphics.enable32Bit = config.machineProfiles.desktop.gaming.enable;
 
   time.timeZone = "Europe/Vienna";
   i18n.defaultLocale = "en_US.UTF-8";

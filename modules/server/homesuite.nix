@@ -231,7 +231,7 @@ in
     };
   };
 
-  config = mkIf config.machineProfiles.homesuite.enable {
+  config = mkIf config.machineProfiles.server.homesuite.enable {
     users.groups.${appGroup} = {};
 
     users.users.${appUser} = {

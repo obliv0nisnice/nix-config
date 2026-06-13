@@ -5,7 +5,7 @@
 }:
 
 {
-  config = lib.mkIf config.machineProfiles.vpn.enable {
+  config = lib.mkIf config.machineProfiles.network.vpn.enable {
     services.mullvad-vpn.enable = true;
   };
 }

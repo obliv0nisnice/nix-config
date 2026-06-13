@@ -10,7 +10,7 @@ let
   homesuiteFrontend = "/var/lib/homesuite/frontend/current";
 in
 {
-  config = lib.mkIf config.machineProfiles.reverseProxy.enable {
+  config = lib.mkIf config.machineProfiles.server.reverseProxy.enable {
     security.acme = {
       acceptTerms = true;
       defaults = {

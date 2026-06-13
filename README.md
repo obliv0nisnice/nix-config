@@ -1,93 +1,89 @@
-# NixOS
+# nix-config
 
-Meine NixOS-Konfiguration für mehrere Maschinen — Desktop mit Hyprland, Laptop, ein paar VMs und ein selbst gehosteter Server.
-
-Alles in einer Flake, geteilte Module, pro Host nur die Schalter umlegen.
+My NixOS setup for several machines — Hyprland desktops, a laptop, throwaway VMs and a self-hosted home server. One flake, shared modules, per-host you just flip switches.
 
 ## Hosts
 
-| Host | Was es ist |
+| Host | What it is |
 |---|---|
-| `nvidia` | Haupt-Desktop, Hyprland, GPU für Spiele / KI |
-| `homedepot` | Server zu Hause — Gitea, SonarQube, Dependency Track, Jellyfin, AdGuard, step-ca |
-| `nvidia-laptop` | Laptop mit Nvidia |
-| `amd` / `intel` / `vm` | weitere Maschinen / Testumgebungen |
+| `nvidia` | Main desktop — Hyprland, GPU for games / AI |
+| `nvidia-laptop` | Laptop with Nvidia Prime |
+| `amd` / `intel` / `vm` | More machines / test boxes |
+| `homedepot` | Home server — Gitea, SonarQube, Dependency Track, Jellyfin, AdGuard, step-ca |
+| `macbook` | Apple Silicon (Asahi), aarch64 |
 
-## Struktur
-
-```
-flake.nix              Inputs + Host-Definitionen
-profiles/_common.nix   Gemeinsame Imports für alle Profile
-profiles/<name>/       Spezifische Driver-/Modul-Wahl pro Profil
-hosts/<host>/          Hardware-File, Variablen, machineProfiles-Schalter
-modules/core/          System-Basis (Boot, Netzwerk, Pakete, Services, Stylix)
-modules/home/          Home-Manager (Hyprland, Waybar, nvim, Rofi, Skripte)
-modules/server/        Server-Dienste (nginx, AdGuard, Gitea, sops, step-ca, …)
-modules/drivers/       GPU-/VM-Treiber
-secrets/               sops-verschlüsselte Konfiguration (Server-only)
+```bash
+sudo nixos-rebuild switch --flake .#<host>
 ```
 
-## machineProfiles
+## Layout
 
-Jeder Host setzt in `hosts/<host>/host-packages.nix` die Schalter, die er will. Deklariert sind sie zentral in `modules/core/profiles.nix`. Beispiel `homedepot`:
+```
+flake.nix              Inputs + host definitions
+profiles/_common.nix   Shared imports for every profile
+profiles/<name>/       Per-profile driver / module choices
+hosts/<host>/          hardware file, variables.nix, host-packages.nix
+modules/core/          System base (boot, network, packages, services, stylix)
+modules/home/          Home-Manager (Hyprland, Waybar, nvim, Rofi, scripts)
+modules/server/        Server services (nginx, AdGuard, Gitea, sops, step-ca …)
+modules/apple-silicon/ Asahi / Mac-specific tuning
+modules/drivers/       GPU / VM drivers
+```
+
+## How a host is configured
+
+Everything that gives a host its personality lives in **`hosts/<host>/variables.nix`** — browser, keyboard layout, monitors, and a full set of feature toggles. Every option is listed explicitly so you can flip things on and off at a glance.
 
 ```nix
-machineProfiles = {
-  server.enable        = true;
-  desktop.enable       = false;
-  reverseProxy.enable  = true;
-  adguard.enable       = true;
-  media.enable         = true;
-  homesuite.enable     = true;
-  sonarqube.enable     = true;
-  gitea.enable         = true;
-  dependencyTrack.enable = true;
-  stepCa.enable        = true;
-};
+# hosts/<host>/variables.nix
+{
+  browser = "floorp";
+  keyboardLayout = "de";
+
+  profiles = {
+    desktop = { enable = true; gaming.enable = true; printing.enable = true; /* … */ };
+    server  = { enable = false; reverseProxy.enable = false; gitea.enable = false; /* … */ };
+    network = { remoteAccess.enable = true; vpn.enable = false; /* … */ };
+    security = { enable = false; pentest.enable = false; /* … */ };
+    apple   = { x86Emulation.enable = false; /* … */ };
+    virtualization.enable = true;
+    dev.dotnet.enable = false;
+  };
+
+  customConf = { nasMount.enable = false; fingerprint.enable = false; };
+}
 ```
 
-Das Module schaut intern via `lib.mkIf cfg.enable`, ob es sich überhaupt aktiv reinhängen darf. Damit kann ein Server `modules/server` importieren, ohne automatisch alle Dienste hochzufahren.
+A small bridge (`modules/core/profiles-from-vars.nix`) feeds this plain data into the `machineProfiles` / `customConf` option trees declared in `modules/core/profiles.nix`. Modules then guard themselves with `lib.mkIf cfg.enable`, so importing `modules/server` doesn't start every service — only the ones switched on. `host-packages.nix` is left for truly host-specific packages.
 
 ## Server (homedepot)
 
-Liefert intern unter `*.nestlerlabs.at`:
+Served internally under `*.nestlerlabs.at`:
 
-- **Gitea** + Actions-Runner — mit Auto-Provisioner, der eine Security-Pipeline in alle Repos legt
-- **SonarQube Community** (Docker) — statische Codeanalyse
-- **Dependency Track** (Docker) — SBOM + Vuln-Tracking
-- **HomeSuite** — eigenes ASP.NET-Backend + Vite-Frontend
-- **Jellyfin** + **Audiobookshelf** (NAS-Mount via CIFS)
-- **AdGuard Home** — DNS + Rewrites für die internen Domains
-- **step-ca** — private ACME-CA, alle nginx-vhosts holen sich darüber automatisch Certs ([Client-Trust einrichten](./docs/trust-ca.md))
-- **sops-nix** — alle Passwörter / Tokens (Postgres, Runner-Token, Provisioner-PAT, step-ca-Intermediate) liegen verschlüsselt im Repo
+- **Gitea** + Actions runner — auto-provisions a security pipeline into every repo
+- **SonarQube** (Docker) — static analysis · **Dependency Track** (Docker) — SBOM + vuln tracking
+- **HomeSuite** — own ASP.NET backend + Vite frontend
+- **Jellyfin** + **Audiobookshelf** (NAS over CIFS) · **AdGuard Home** — DNS + rewrites
+- **step-ca** — private ACME CA; nginx vhosts pull certs automatically ([trust setup](./docs/trust-ca.md))
+- **sops-nix** — every secret (Postgres, runner token, provisioner PAT, CA intermediate) encrypted in-repo
 
-## Desktop (nvidia)
+## Desktop
 
-- Hyprland + Waybar + Rofi + SwayNC
-- Stylix als Theming-Layer (Gruvbox-base)
-- nvim via [nvf](https://github.com/notashelf/nvf) mit LSP, Telescope, NeoTree, Treesitter
-- Custom-Scripts unter `modules/home/scripts/` (rofi-launcher, Screenshot, Cheatsheets, Web-Search)
-- NAS-Mount, Stylish-Boot via Minegrub-Theme
+Hyprland + Waybar + Rofi + SwayNC, themed with Stylix. Neovim via nixvim (LSP, Telescope, nvim-tree, Treesitter). Custom scripts under `modules/home/scripts/`, NAS mount, Minegrub boot theme.
 
 ## Build
 
 ```bash
-# lokal
+# local
 sudo nixos-rebuild switch --flake .#<host>
 
-# vom Desktop auf den Server
+# desktop -> server
 nixos-rebuild switch --flake .#homedepot \
-  --target-host jakob@192.168.1.119 \
-  --build-host localhost \
-  --sudo
+  --target-host jakob@192.168.1.119 --build-host localhost --sudo
 ```
 
-Alias `fr` / `fu` rebuilden bzw. updaten — siehe `modules/home/zsh.nix`.
+Shell aliases `fr` / `fu` rebuild / update — see `modules/home/zsh.nix`.
 
-## Secrets-Setup
+## Secrets
 
-Wenn `secrets/secrets.yaml` fehlt, läuft alles mit Hardcoded-Defaults weiter — `modules/server/secrets.nix` aktiviert sich nur bei vorhandener Datei. Anleitung zum Anlegen liegt in `secrets/README.md`.
-
-## Was noch offen ist
-
-Siehe `todo.txt`.
+If `secrets/secrets.yaml` is absent everything still builds on hardcoded defaults — `modules/server/secrets.nix` only activates when the file exists. See `secrets/README.md`.

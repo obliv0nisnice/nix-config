@@ -14,7 +14,7 @@ let
     workspaceSettings
     keyboardLayout
     ;
-  batteryMode = machineProfiles.batteryPerformance.enable;
+  batteryMode = machineProfiles.apple.batteryPerformance.enable;
 in {
   wayland.windowManager.hyprland = {
     settings = {

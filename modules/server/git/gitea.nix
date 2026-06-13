@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.machineProfiles.gitea;
+  cfg = config.machineProfiles.server.gitea;
   dataRoot = "/var/lib/gitea";
 in
 {

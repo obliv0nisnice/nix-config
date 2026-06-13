@@ -6,7 +6,7 @@
 }:
 
 {
-  config = lib.mkIf config.machineProfiles.media.enable {
+  config = lib.mkIf config.machineProfiles.server.media.enable {
    fileSystems."/home/jakob/jellyfin/media" = {
     device = "//192.168.1.125/home/Jellyfin";
     fsType = "cifs";
