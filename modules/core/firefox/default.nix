@@ -25,7 +25,7 @@ let
   ];
   privacyExtensions = with pkgs.nur.repos.rycee.firefox-addons; [
     clearurls
-    darkreader
+    #darkreader
     sponsorblock
     ublock-origin
     keepassxc-browser
@@ -212,7 +212,7 @@ in
         );
         extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
           clearurls
-          darkreader
+          #darkreader
           sponsorblock
           ublock-origin
           youtube-nonstop
