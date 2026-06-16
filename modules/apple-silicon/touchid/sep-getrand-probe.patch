@@ -1,0 +1,24 @@
+SEP wake-timing probe: send a getrandom (EP 0xff cmd 16) before TZ0 in start().
+If the SEP answers (RX type 0x74 via sep-trace-rx) it is awake at sep-probe time;
+if silent (like TZ0) it is asleep by the time Linux can safely reach it. Applies
+AFTER sep-trace-tx. Temporary diagnostic (MacFingerprint Touch ID RE).
+
+--- a/drivers/soc/apple/sep.rs
++++ b/drivers/soc/apple/sep.rs
+@@ -175,6 +175,16 @@
+         )
+     }
+     fn start(&self) -> Result<()> {
++        // SEP wake-timing probe: getrandom (EP 0xff cmd 16). Antwortet der SEP
++        // (RX type 0x74 via sep-trace-rx), ist er wach; sonst schlaeft er.
++        dev_info!(self.dev, "SEP TX: getrandom probe (ep={:#x} cmd=16)", EP_BOOT);
++        let _ = self.mbox.lock().as_ref().unwrap().send(
++            Message {
++                msg0: EP_BOOT | (16u64 << MSG_TYPE_SHIFT),
++                msg1: 0,
++            },
++            false,
++        );
+         dev_info!(self.dev, "SEP TX: boot TZ0 (ep={:#x} type={:#x})", EP_BOOT, MSG_BOOT_TZ0);
+         self.mbox.lock().as_ref().unwrap().send(
+             Message {

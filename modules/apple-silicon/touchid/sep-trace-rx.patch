@@ -1,0 +1,25 @@
+Trace every message received from the SEP (ep, type, raw msg0).
+
+The sep.rs stub dispatches only EP_BOOT/EP_DISCOVER and handles the boot ACKs
+(0x69/0xD2/0x6A) silently, so we cannot see how far SEP boot gets nor whether
+SEPOS sends anything after IMG4. Add one dev_info! in the central
+process_message() to log every inbound message. Goal (Touch ID RE, MacFingerprint):
+determine where the macOS-26 SEP boot stalls -- do we get the ACKs, does any
+advertise (ep 0xFD) or unknown message arrive afterwards?
+
+--- a/drivers/soc/apple/sep.rs
++++ b/drivers/soc/apple/sep.rs
+@@ -254,6 +254,13 @@
+     }
+     fn process_message(&self, msg: Message) {
+         let ep = msg.msg0 & MSG_EP_MASK;
++        dev_info!(
++            self.dev,
++            "SEP RX: ep={:#04x} type={:#04x} msg0={:#018x}",
++            ep,
++            (msg.msg0 >> MSG_TYPE_SHIFT) & MSG_TYPE_MASK,
++            msg.msg0
++        );
+         match ep {
+             EP_BOOT => self.process_boot_msg(msg),
+             EP_DISCOVER => self.process_discover_msg(msg),

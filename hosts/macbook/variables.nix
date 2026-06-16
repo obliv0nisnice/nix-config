@@ -70,7 +70,7 @@
       enable = false;
       pentest.enable = false;
       exploitDev.enable = false;
-      reversing.enable = false;
+      reversing.enable = true;
       networkAnalysis.enable = false;
       remoteScan.enable = false;
     };

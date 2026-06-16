@@ -1,0 +1,33 @@
+Trace every message SENT to the SEP (TZ0 / IMG4 / SET_SHMEM, incl. addresses).
+
+Companion to sep-trace-rx: log the three outgoing boot messages so the dmesg
+shows the full conversation (what we send vs. what -- if anything -- comes back).
+Lets us confirm fw_addr/shm_addr are sane and correlate each TX with its ACK.
+
+--- a/drivers/soc/apple/sep.rs
++++ b/drivers/soc/apple/sep.rs
+@@ -175,6 +175,7 @@
+         )
+     }
+     fn start(&self) -> Result<()> {
++        dev_info!(self.dev, "SEP TX: boot TZ0 (ep={:#x} type={:#x})", EP_BOOT, MSG_BOOT_TZ0);
+         self.mbox.lock().as_ref().unwrap().send(
+             Message {
+                 msg0: EP_BOOT | (MSG_BOOT_TZ0 << MSG_TYPE_SHIFT),
+@@ -201,14 +202,16 @@
+         };
+         let guard = self.mbox.lock();
+         let mbox = guard.as_ref().unwrap();
++        dev_info!(self.dev, "SEP TX: boot IMG4 (ep={:#x} type={:#x} fw_addr={:#x})", EP_BOOT, MSG_BOOT_IMG4, fw_addr);
+         mbox.send(
+             Message {
+                 msg0: EP_BOOT | (MSG_BOOT_IMG4 << MSG_TYPE_SHIFT) | (fw_addr << MSG_DATA_SHIFT),
+                 msg1: 0,
+             },
+             false,
+         )?;
+         let shm_addr = self.shmem.dma_handle() >> IOVA_SHIFT;
++        dev_info!(self.dev, "SEP TX: set shmem (ep={:#x} type={:#x} shm_addr={:#x})", EP_SHMEM, MSG_SET_SHMEM, shm_addr);
+         mbox.send(
+             Message {
+                 msg0: EP_SHMEM | (MSG_SET_SHMEM << MSG_TYPE_SHIFT) | (shm_addr << MSG_DATA_SHIFT),

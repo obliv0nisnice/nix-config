@@ -1,0 +1,29 @@
+m1n1: SEP wake-timing diagnostic. Probe the SEP ROM (sep_get_random) as late
+as possible in m1n1_main (right after run_actions, before u-boot handoff) and
+print AWAKE/NO RESPONSE to the screen, then pause 8s so it can be read.
+Establishes whether the SEP answers during m1n1 on the u-boot-payload setup
+(MacFingerprint Touch ID RE). Applies to m1n1 1.5.2.
+
+--- a/src/main.c
++++ b/src/main.c
+@@ -183,6 +183,20 @@
+ 
+     run_actions();
+ 
++    /* SEP wake-timing diagnostic (MacFingerprint Touch ID RE): probe the SEP ROM
++     * as late as possible in m1n1 -- right before handing off to u-boot/Linux --
++     * to learn whether it still answers here. Result on screen; pause to read. */
++    {
++        u32 septest_rand = 0;
++        size_t septest_n = sep_get_random(&septest_rand, sizeof(septest_rand));
++        printf("\n======== SEPTEST ========\n");
++        printf("SEPTEST: sep_get_random -> %d bytes rand=0x%08x %s\n",
++               (int)septest_n, septest_rand,
++               septest_n == sizeof(septest_rand) ? "(SEP AWAKE)" : "(NO RESPONSE)");
++        printf("=========================\n");
++        mdelay(8000);
++    }
++
+     if (!next_stage.entry) {
+         panic("Nothing to do!\n");
+     }

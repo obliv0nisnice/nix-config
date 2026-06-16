@@ -239,7 +239,8 @@ in
       boofuzz
     ]
     ++ lib.optionals config.machineProfiles.security.reversing.enable [
-      unblobPatched
+      #unblobPatched
+      ghidra
     ]
     ++ lib.optionals config.machineProfiles.security.networkAnalysis.enable [
       wireshark
