@@ -146,6 +146,9 @@ in
   };
   programs.firefox = lib.mkIf osConfig.machineProfiles.desktop.enable {
     enable = true;
+    # Legacy-Default explizit halten (ab stateVersion 26.05 wechselt der Default
+    # auf den XDG-Pfad). Kein Profil-Umzug nötig, ~/.mozilla/firefox bleibt.
+    configPath = ".mozilla/firefox";
     policies = {
       DisableTelemetry = true;
       DontCheckDefaultBrowser = true;

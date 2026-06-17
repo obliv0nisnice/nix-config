@@ -28,7 +28,7 @@
         "break"
         {
           type = "os";
-          key = "OS - ZaneyOS v2.3"; 
+          key = "OS - MixOS"; 
           keyColor = "31";  
         }
         {
@@ -53,28 +53,8 @@
           keyColor = "32";
         }
         {
-          type = "wmtheme";
-          key = " ├ 󰉼 ";
-          keyColor = "32";
-        }
-        {
-          type = "icons";
-          key = " ├ 󰀻 ";
-          keyColor = "32";
-        }
-        {
-          type = "cursor";
-          key = " ├  ";
-          keyColor = "32";
-        }
-        {
           type = "terminal";
-          key = " ├  ";
-          keyColor = "32";
-        }
-        {
-          type = "terminalfont";
-          key = " └  ";
+          key = " └  ";
           keyColor = "32";
         }
         "break"
@@ -98,27 +78,7 @@
         }
         {
           type = "memory";
-          key = " ├  ";
-          keyColor = "33";
-        }
-        {
-          type = "disk";
-          key = " ├ 󰋊 ";
-          keyColor = "33";
-        }
-        {
-          type = "monitor";
-          key = " └  ";
-          keyColor = "33";
-        }
-        {
-          type = "player";
-          key = "└ 󰥠 ";
-          keyColor = "33";
-        }
-        {
-          type = "media";
-          key = " └ 󰝚 ";
+          key = " └  ";
           keyColor = "33";
         }
         "break"

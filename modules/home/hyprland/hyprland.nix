@@ -17,6 +17,9 @@
   ];
   wayland.windowManager.hyprland = {
     enable = true;
+    # Legacy-Default explizit halten: hyprlang statt des neuen lua-Configtyps
+    # (ab stateVersion 26.05 Default). Bewusst nicht auf lua migriert.
+    configType = "hyprlang";
     xwayland = {
       enable = true;
     };
