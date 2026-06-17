@@ -102,6 +102,7 @@ in
       codex
       rofimoji # emoji picker (replaces the old emoji.nix home module)
       typst
+      
     ]
     # ---- x86-only base (pentest / mobile / gamedev tooling that doesn't target aarch64) ----
     ++ lib.optionals isx86 [

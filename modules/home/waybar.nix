@@ -32,6 +32,7 @@ in
           ];
           modules-right = [
             "custom/hyprbindings"
+            "custom/nvimbindings"
             "custom/notification"
             "custom/exit"
             "battery"
@@ -80,7 +81,6 @@ in
             interval = 10;
             format = "{}";
             exec = ./scripts/cpuinfo.sh;
-            # exec = "USAGE=$(grep 'cpu ' /proc/stat | awk '{u=$2+$4; t=u+$5} NR==1 {u1=u; t1=t} END {printf \"%.0f\", (u1/t1)*100}'); TEMP=$(awk '{printf \"%.0f\", $1/1000}' /sys/class/thermal/thermal_zone1/temp); echo \" $USAGE% | 🌡️ $TEMP°C\"";
             return-type = "json";
             tooltip = true;
           };
@@ -142,6 +142,11 @@ in
             tooltip = false;
             format = "󱕴";
             on-click = "sleep 0.1 && list-keybinds";
+          };
+          "custom/nvimbindings" = {
+            tooltip = false;
+            format = "";
+            on-click = "sleep 0.1 && nvim-cheatsheet";
           };
           "idle_inhibitor" = {
             format = "{icon}";
@@ -289,7 +294,7 @@ in
             padding: 0px 30px 0px 15px;
             border-radius: 0px 0px 40px 0px;
           }
-          #custom-hyprbindings, #network, #battery, #power-profiles-daemon,
+          #custom-hyprbindings, #custom-nvimbindings, #network, #battery, #power-profiles-daemon,
           #custom-notification, #tray, #custom-exit {
             font-weight: bold;
             background: #${config.lib.stylix.colors.base0F};
