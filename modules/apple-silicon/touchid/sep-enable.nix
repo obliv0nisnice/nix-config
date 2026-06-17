@@ -50,16 +50,9 @@
   # ungenutzte Ressource weg"-Hebel; schliesst Clock-Gating als SEP-Schlaf-Ursache aus.
   boot.kernelParams = [ "sep.dyndbg=+p" "iomem=relaxed" "pd_ignore_unused" "clk_ignore_unused" ];
 
-  # m1n1-Patch: SEP-Wake-Timing-Diagnose (sep_get_random spaet in m1n1_main, vor dem
-  # u-boot-Handoff) -> zeigt auf dem Bildschirm, ob der SEP waehrend m1n1 antwortet.
-  # m1n1 kommt aus nixpkgs (stock 1.5.2); bei pkgsSystem=aarch64-linux ist
-  # hardware.asahi.pkgs = ambient pkgs, daher greift nixpkgs.overlays.
-  # ACHTUNG: aendert boot.bin -> Boot-Ketten-Eingriff (Recovery via macOS-Dual-Boot).
-  nixpkgs.overlays = [
-    (final: prev: {
-      m1n1 = prev.m1n1.overrideAttrs (old: {
-        patches = (old.patches or [ ]) ++ [ ./m1n1-septest.patch ];
-      });
-    })
-  ];
+  # m1n1-Override ENTFERNT (2026-06-16): Diagnose ergab, der SEP ist auch in m1n1
+  # (early UND late) tot -> iBoot legt ihn schlafen, bevor irgendein OS-Code laeuft.
+  # m1n1 bringt also keinen Vorteil ggue. Linux; Override raus = stock m1n1, schneller
+  # brick-freier Boot. Patch-Datei m1n1-septest.patch bleibt im Repo (Referenz).
+  # Naechster Schritt: Wake/Re-Bootstrap-Sequenz (AppleSEPManager) -> in Linux umsetzen.
 }
