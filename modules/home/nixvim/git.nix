@@ -4,11 +4,11 @@
     lazygit = { enable = true; };
     neogit = {
       enable = true;
-      config.integrations = { diffview = true; };
+      settings.integrations = { diffview = true; };
     };
     gitsigns = {
       enable = true;
-      config = {
+      settings = {
         current_line_blame = true;
         trouble = true;
       };

@@ -55,6 +55,7 @@ in
     apple = {
       allowUnsupported.enable = mkEnableOption "allow unsupported packages (allowUnsupportedSystem) on Apple Silicon";
       x86Emulation.enable = mkEnableOption "x86_64 binfmt emulation on Apple Silicon";
+      steam.enable = mkEnableOption "Steam via muvm + FEX (x86_64 emulation in a 4K-page microVM) on Apple Silicon";
       batteryPerformance.enable = mkEnableOption "a lighter Hyprland profile for battery/performance testing";
     };
 

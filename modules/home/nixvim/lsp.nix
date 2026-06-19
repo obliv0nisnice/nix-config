@@ -95,7 +95,7 @@
     otter = {
       # provide lsp functionality for code embedded in other languages
       enable = true;
-      config.handle_leading_whitespace = true;
+      settings.handle_leading_whitespace = true;
     };
 
     lsp-lines = {
@@ -103,5 +103,5 @@
     };
     rustaceanvim.enable = true;
   };
-  diagnostics.virtual_lines.only_current_line = true;
+  diagnostic.settings.virtual_lines.only_current_line = true;
 }

@@ -7,6 +7,7 @@
   imports = [
     ./boot.nix
     ./emulateboot.nix
+    ./steam.nix
     ./firefox-widevine.nix
     ./ram.nix
     ./k3s-single-node.nix

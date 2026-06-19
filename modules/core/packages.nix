@@ -98,8 +98,6 @@ in
       file
       gcc
       gnumake
-      yazi
-      codex
       rofimoji # emoji picker (replaces the old emoji.nix home module)
       typst
       
@@ -120,16 +118,6 @@ in
       scrcpy
       jdk17
 
-      # Frida / Proxy / MITM
-      frida-tools
-      burpsuite
-      mitmproxy
-
-      # Audible
-      libation
-      audible-cli
-      audiobookshelf
-
       # GameDev
       godot
       blender
@@ -145,15 +133,19 @@ in
       remmina
       openvpn
 
-      claude-code
+      (claude-code.overrideAttrs {
+          version = "2.1.170";
+          src = fetchurl {
+            url = "https://downloads.claude.ai/claude-code-releases/2.1.170/linux-x64/claude";
+            sha256 = "sha256-hJ4AcnegRCqydXDT49bUN4dQeUZZDo3RlH5aObcIH54=";
+          };
+        })    
     ]
+
     # ---- aarch64-only base (Apple-Silicon known-good extras) ----
     ++ lib.optionals isAarch64 [
       coreutils-full
       libdrm
-      ranger
-      terraform
-      awscli2
       claudeCodeArm
     ]
     # ---- desktop tools shared across arches ----
@@ -181,16 +173,11 @@ in
       gimp
       picard
       v4l-utils
-      jetbrains.rider
       nvidia-system-monitor-qt
       spotify
-      (texlive.combine {
-        inherit (texlive) scheme-full adjustbox;
-      })
       liquidctl
       flatpak
       vulkan-tools
-      pdfstudioviewer
       obs-studio
     ]
     ++ lib.optionals config.machineProfiles.virtualization.enable [
@@ -204,13 +191,17 @@ in
         thunderbird
         teams-for-linux
       ]
+
       ++ lib.optionals isx86 [ (discord.override { withVencord = true; }) ]
+      
       ++ lib.optionals isAarch64 [ vesktop ]
     )
+
     ++ lib.optionals (config.machineProfiles.desktop.gaming.enable && isx86) [
       heroic
       prismlauncher
     ]
+    
     ++ lib.optionals config.machineProfiles.network.copyTools.enable [
       rsync
       rclone
