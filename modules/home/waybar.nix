@@ -29,7 +29,7 @@ in
             "custom/cpu"
             "memory"
             "idle_inhibitor"
-          ];
+          ] ++ optional (host == "macbook") "custom/kbd_backlight";
           modules-right = [
             "custom/hyprbindings"
             "custom/nvimbindings"
@@ -156,6 +156,16 @@ in
             };
             tooltip = "true";
           };
+          "custom/kbd_backlight" = {
+            format = "{}";
+            return-type = "json";
+            exec = "kbd-backlight";
+            interval = 5;
+            on-click = "kbd-backlight toggle";
+            on-scroll-up = "kbd-backlight up";
+            on-scroll-down = "kbd-backlight down";
+            tooltip = true;
+          };
           "custom/notification" = {
             tooltip = false;
             format = "{icon} {text}";
@@ -267,7 +277,7 @@ in
           tooltip label {
             color: #${config.lib.stylix.colors.base08};
           }
-          #window, #pulseaudio, #memory, #idle_inhibitor {
+          #window, #pulseaudio, #memory, #idle_inhibitor, #custom-kbd_backlight {
             font-weight: bold;
             margin: 4px 0px;
             margin-left: 7px;
@@ -275,6 +285,9 @@ in
             background: #${config.lib.stylix.colors.base04};
             color: #${config.lib.stylix.colors.base00};
             border-radius: 24px 10px 24px 10px;
+          }
+          #custom-kbd_backlight.off {
+            opacity: 0.5;
           }
           #custom-cpu {
             font-weight: bold;
