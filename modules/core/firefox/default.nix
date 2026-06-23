@@ -12,6 +12,7 @@ let
   privacySettings = [
     (import ./config/preferences.nix)
     (import ./config/browser-features.nix)
+    (import ./config/drm.nix)
     (import ./config/privacy.nix)
     (import ./config/tracking.nix)
     (import ./config/security.nix)

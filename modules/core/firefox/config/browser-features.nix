@@ -95,15 +95,8 @@
   # startup.  This involves traffic to Akamai
   # (https://support.mozilla.org/questions/1169302).
   "network.captive-portal-service.enabled" = false;
-  # Disables playback of DRM-controlled HTML5 content
-  # if enabled, automatically downloads the Widevine Content Decryption Module
-  # provided by Google Inc. Details
-  # (https://support.mozilla.org/en-US/kb/enable-drm#w_opt-out-of-cdm-playback-uninstall-cdms-and-stop-all-cdm-downloads)
-  "media.eme.enabled" = true;
-  # Disables the Widevine Content Decryption Module provided by Google Inc.
-  # Used for the playback of DRM-controlled HTML5 content Details
-  # (https://support.mozilla.org/en-US/kb/enable-drm#w_disable-the-google-widevine-cdm-without-uninstalling)
-  "media.gmp-widevinecdm.enabled" = true;
+  # DRM / Widevine lives in ./drm.nix (generic enable, all hosts) and
+  # modules/apple-silicon/firefox-widevine.nix (aarch64 local plugin path).
   # Disable access to device sensor data
   # Disallow websites to access sensor data (ambient light, motion, device
   # orientation and proximity data).
