@@ -12,6 +12,7 @@
   # Program Options
   browser = "floorp"; # Set Default Browser
   terminal = "kitty"; # Set Default System Terminal
+  discordClient = "discord";
   keyboardLayout = "de";
   consoleKeyMap = "de";
 

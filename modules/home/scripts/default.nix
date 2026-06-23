@@ -1,6 +1,8 @@
 {
   pkgs,
   username,
+  lib,
+  host,
   ...
 }: {
   home.packages = [
@@ -17,6 +19,7 @@
     (import ./web-search.nix {inherit pkgs;})
     (import ./rofi-launcher.nix {inherit pkgs;})
     (import ./screenshootin.nix {inherit pkgs;})
-    (import ./kbd-backlight.nix {inherit pkgs;})
-  ];
+  ]
+  # Tastaturbeleuchtung gibt es nur am MacBook (kbd_backlight via Asahi-Kernel).
+  ++ lib.optional (host == "macbook") (import ./kbd-backlight.nix {inherit pkgs;});
 }

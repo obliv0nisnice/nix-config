@@ -10,6 +10,7 @@
 
   browser = "floorp";
   terminal = "kitty";
+  discordClient = "discord";
   keyboardLayout = "de";
   consoleKeyMap = "de";
 

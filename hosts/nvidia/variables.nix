@@ -26,6 +26,7 @@
   # Program Options
   browser = "firefox"; # Set Default Browser
   terminal = "kitty"; # Set Default System Terminal
+  discordClient = "discord";
   keyboardLayout = "de";
   consoleKeyMap = "de";
 

@@ -10,6 +10,7 @@ let
     (import ../../../hosts/${host}/variables.nix)
     browser
     terminal
+    discordClient
     extraMonitorSettings
     workspaceSettings
     keyboardLayout
@@ -27,7 +28,7 @@ in {
         "lxqt-policykit-agent"
         "pypr &"
         "awww-daemon"
-        "sleep 1 && awww img $HOME/NixOS/wallpapers/Legend_of_Zelda.png"
+        "sleep 1 && awww img $HOME/nix-config/wallpapers/Legend_of_Zelda.png"
         "hyprctl dispatch workspace 1"
       ];
       input = {
@@ -109,15 +110,17 @@ in {
 
       #TODO: mehr auf variablen ${} umstellen
       bind = [
+        "$modifier, N, exec, dunstify \"$(wl-paste)\""
+        "$modifier SHIFT, E, exec, hyprshot -s --mode active --mode output -o /tmp -f question.png; claude -p --allowed-tools \"Read\" --system-prompt \"Respond with the correct answer to the question in the screenshot. Do not provide detailed explanations, only tell me the correct answer if possible.\" \"Read /tmp/question.png and answer the question in it\" | wl-copy && notify-send -t 150 Done"
         "$modifier,Return,exec,${terminal}"
         "$modifier,SPACE,exec,rofi-launcher"
         "$modifier SHIFT,W,exec,web-search"
         "$modifier ALT,W,exec,wallsetter"
         "$modifier SHIFT,N,exec,swaync-client -rs"
         "$modifier,W,exec,${browser}"
-        "$modifier,E,exec,emopicker9000"
+        #"$modifier,E,exec,emopicker9000"
         "$modifier,S,exec,screenshootin"
-        "$modifier,D,exec,vesktop"
+        "$modifier,D,exec,${discordClient}"
         "$modifier,C,exec,hyprpicker -a"
         "$modifier,T,exec,pypr toggle term"
         "$modifier SHIFT,T,exec,pypr toggle thunar"

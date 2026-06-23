@@ -7,10 +7,13 @@
   home.packages = with pkgs; [
     awww
     grim
+    hyprshot
     slurp
     wl-clipboard
     swappy
     ydotool
+    dunst
+    wl-clipboard
   ];
   systemd.user.targets.hyprland-session.Unit.Wants = [
     "xdg-desktop-autostart.target"
