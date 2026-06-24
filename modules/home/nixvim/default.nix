@@ -40,6 +40,7 @@ let
       ./which_key.nix
       ./wilder.nix
       ./typst-preview.nix
+      ./term-previews.nix
       ./markdown.nix
       ./hop.nix
       ./colorizer.nix
