@@ -1,26 +1,68 @@
 {
+  lib,
+  pkgs,
   host,
   username,
   config,
   machineProfiles,
   ...
-}: 
+}:
 let
+  vars = import ../../../hosts/${host}/variables.nix;
   inherit
-    (import ../../../hosts/${host}/variables.nix)
+    (vars)
     browser
     terminal
     discordClient
-    extraMonitorSettings
     workspaceSettings
     keyboardLayout
     ;
+  # Optionaler Roh-String-Escape-Hatch (darf in variables.nix fehlen).
+  extraMonitorSettings = vars.extraMonitorSettings or "";
   batteryMode = machineProfiles.apple.batteryPerformance.enable;
+
+  # Monitore: Hosts können in variables.nix `monitors` als Liste von
+  # Hyprland-Monitorstrings setzen (z.B. "DP-1,2560x1440@144,0x0,1").
+  # Ist nichts gesetzt, greift der automatische Default (,preferred,auto,auto).
+  # Der Roh-String `extraMonitorSettings` bleibt als Escape-Hatch bestehen.
+  monitors = vars.monitors or [ ];
+  monitorSetting =
+    if monitors != [ ]
+    then monitors
+    else if extraMonitorSettings != ""
+    then [ ]
+    else [ ",preferred,auto,auto" ];
+
+  # Wallpaper: `wallpaper` = globaler Default für alle Bildschirme.
+  # `wallpapers` = optionales Attrset { "<output>" = "<datei>"; } für ein
+  # eigenes Wallpaper pro Bildschirm. Der Default wird zuerst auf alle Outputs
+  # gelegt, danach überschreiben die Einträge aus `wallpapers` einzelne Monitore.
+  wallpaper = vars.wallpaper or "Legend_of_Zelda.png";
+  wallpapers = vars.wallpapers or { };
+  wpPath = file: "$HOME/nix-config/wallpapers/${file}";
+  awwwBin = "${pkgs.awww}/bin/awww";
+  # `|| true` bei den per-Monitor-Overrides: nicht angeschlossene Outputs
+  # (z.B. externe Displays im Nicht-Dock-Betrieb) sollen den Service nicht failen.
+  wallpaperApply =
+    [ "${awwwBin} img ${wpPath wallpaper}" ]
+    ++ lib.mapAttrsToList (out: file: "${awwwBin} img --outputs ${out} ${wpPath file} || true") wallpapers;
+  # Skript wird als systemd-User-Service ausgeführt: beim Login über die
+  # hyprland-session.target UND bei jedem Rebuild (der Store-Pfad ändert sich mit
+  # dem Wallpaper, sd-switch startet den Service dann neu).
+  setWallpaperScript = pkgs.writeShellScript "set-wallpaper" ''
+    # Auf den awww-Daemon warten (beim Login startet er evtl. noch).
+    for _ in $(seq 1 50); do
+      ${awwwBin} query >/dev/null 2>&1 && break
+      sleep 0.2
+    done
+    ${lib.concatStringsSep "\n    " wallpaperApply}
+  '';
 in {
   wayland.windowManager.hyprland = {
     settings = {
+      monitor = monitorSetting;
       workspace = workspaceSettings;
-      
+
       exec-once = [
         "systemctl --user import-environment WAYLAND_DISPLAY DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP"
         "dbus-update-activation-environment --systemd WAYLAND_DISPLAY DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP"
@@ -28,7 +70,6 @@ in {
         "lxqt-policykit-agent"
         "pypr &"
         "awww-daemon"
-        "sleep 1 && awww img $HOME/nix-config/wallpapers/Legend_of_Zelda.png"
         "hyprctl dispatch workspace 1"
       ];
       input = {
@@ -285,5 +326,20 @@ windowrule = [
     };
 
     extraConfig = extraMonitorSettings;
+  };
+
+  # Wallpaper setzen – beim Login und bei jedem Rebuild (siehe setWallpaperScript).
+  systemd.user.services.set-wallpaper = {
+    Unit = {
+      Description = "Wallpaper via awww setzen";
+      After = [ "hyprland-session.target" ];
+      PartOf = [ "hyprland-session.target" ];
+    };
+    Service = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${setWallpaperScript}";
+    };
+    Install.WantedBy = [ "hyprland-session.target" ];
   };
 }

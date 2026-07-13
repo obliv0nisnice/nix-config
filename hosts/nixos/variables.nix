@@ -3,8 +3,26 @@
   gitUsername = "obliv0nisnice";
   gitEmail = "anrufen_nahm0p@icloud.com";
 
-  # Hyprland Settings
-  extraMonitorSettings = "";
+  # ---- Bildschirme & Wallpaper (alle Felder optional) ----
+  # So sieht die Konfiguration aus:
+  #
+  #   # Monitore deklarativ – Liste von Hyprland-Monitorstrings
+  #   # Format: "<output>,<breite>x<hoehe>@<hz>,<x>x<y>,<scale>"
+  #   monitors = [
+  #     "DP-1,2560x1440@144,0x0,1"
+  #     "HDMI-A-1,1920x1080@60,2560x0,1"
+  #   ];
+  #   # Leer / weggelassen => automatischer Default (,preferred,auto,auto).
+  #
+  #   # Ein Wallpaper für alle Bildschirme (Dateiname aus wallpapers/)
+  #   wallpaper = "Legend_of_Zelda.png";
+  #   # Eigenes Wallpaper pro Bildschirm (Output-Name => Datei)
+  #   wallpapers = {
+  #     "DP-1" = "Itachi.jpg";
+  #     "HDMI-A-1" = "grogu.jpg";
+  #   };
+  #
+  # `extraMonitorSettings` = Roh-String-Escape-Hatch (nur wenn `monitors` leer).
   workspaceSettings = [ ];
   guiActivation = true;
 
