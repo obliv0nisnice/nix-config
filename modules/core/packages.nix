@@ -132,14 +132,15 @@ in
       # RemoteConnection
       remmina
       openvpn
-
-      (claude-code.overrideAttrs {
-          version = "2.1.170";
-          src = fetchurl {
-            url = "https://downloads.claude.ai/claude-code-releases/2.1.170/linux-x64/claude";
-            sha256 = "sha256-hJ4AcnegRCqydXDT49bUN4dQeUZZDo3RlH5aObcIH54=";
-          };
-        })    
+      
+      claude-code
+        #(claude-code.overrideAttrs {
+        # version = "2.1.170";
+        # src = fetchurl {
+        #   url = "https://downloads.claude.ai/claude-code-releases/2.1.170/linux-x64/claude";
+      #   sha256 = "sha256-hJ4AcnegRCqydXDT49bUN4dQeUZZDo3RlH5aObcIH54=";
+      #   };
+      # })
     ]
 
     # ---- aarch64-only base (Apple-Silicon known-good extras) ----

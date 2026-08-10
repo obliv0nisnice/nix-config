@@ -30,6 +30,12 @@
     "DP-1,2560x1440@60,-2560x-540,1"
   ];
 
+  wallpapers = {
+    "DP-1" = "ItachiSasuke4.jpg";
+    "DP-2" = "Legend_of_Zelda.png";
+    "HDMI-A-1" = "Akame.jpg";
+  };
+  
   workspaceSettings = [
         "name:1, monitor:DP-2"
         "name:2, monitor:DP-1"
