@@ -1,0 +1,47 @@
+Reset the SEP coprocessor CPU before sending MSG_BOOT_TZ0.
+
+Touch ID reverse-engineering (~/Projects/MacFingerprint, findings/phase2d-...md).
+
+Problem: iBoot boots the SEP (SEPFW running) before Linux gets control. The apple_sep
+stub then sends TZ0 to a SEP whose SEPROM is no longer listening -> the SEP stays silent
+(no TZ0/getrandom reply). Keeping the power domain on (pd_ignore_unused) does not help:
+it is a coprocessor-state problem, not a power problem.
+
+Fix (from macOS AppleA7IOP-ASCWrap-v4 _runCPU/stopCPU, decompiled): restart the SEP CPU
+via the ASC CPU_CONTROL register before TZ0. It lives in the sep node's own reg0 range
+(sep@396400000, "reg = <0x3 0x96400000 0x0 0x6C000>") at offset 0x44, bit4 (0x10) = RUN.
+This is AP-accessible ASC MMIO -- NOT the AP-locked PMGR reset register that crashed
+earlier. stopCPU = clear bits 4+5, runCPU = set bit4 -> SEP re-enters SEPROM and accepts
+the TZ0/IMG4/SET_SHMEM handshake the driver already sends.
+
+Note: reg0 (0x396400000, 0x6c000) overlaps the sep_mbox range (0x396408000); we use the
+non-exclusive iomap() (plain ioremap, no request_mem_region) so it does not conflict with
+the apple-mailbox driver. The one-shot mapping is released right after the reset.
+--- a/drivers/soc/apple/sep.rs
++++ b/drivers/soc/apple/sep.rs
+@@ -334,6 +334,25 @@
+             c_str!("mbox"),
+             data.clone(),
+         )?);
++        // MacFingerprint (Touch ID RE): reset the SEP coprocessor CPU before TZ0.
++        // iBoot already booted the SEP (SEPFW running) -> its SEPROM ignores the
++        // TZ0 below and the SEP stays silent. macOS (AppleA7IOP-ASCWrap-v4
++        // _runCPU/stopCPU) restarts the CPU via ASC CPU_CONTROL at reg0
++        // (sep@396400000) + 0x44, bit4 (0x10) = RUN. AP-accessible ASC MMIO, NOT
++        // the AP-locked PMGR reset register.
++        {
++            const ASC_CPU_CONTROL: usize = 0x44;
++            let request = pdev.io_request_by_index(0).ok_or(EIO)?;
++            let iomem = KBox::pin_init(request.iomap(), GFP_KERNEL)?;
++            let io = iomem.access(pdev.as_ref())?;
++            // stopCPU: clear RUN (bit4) + bit5
++            let v = io.try_read32_relaxed(ASC_CPU_CONTROL)?;
++            io.try_write32_relaxed(v & !0x30, ASC_CPU_CONTROL)?;
++            // runCPU: set RUN (bit4) -> SEP restarts into SEPROM, ready for TZ0
++            let v = io.try_read32_relaxed(ASC_CPU_CONTROL)?;
++            io.try_write32_relaxed(v | 0x10, ASC_CPU_CONTROL)?;
++            dev_info!(data.dev, "SEP: ASC CPU reset (CPU_CONTROL+0x44 RUN) before TZ0");
++        }
+         data.start()?;
+         Ok(KBox::pin(SepDriver(data), GFP_KERNEL)?)
+     }

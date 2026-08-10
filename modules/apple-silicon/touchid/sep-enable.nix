@@ -37,6 +37,14 @@
       name = "sep-getrand-probe";
       patch = ./sep-getrand-probe.patch;
     }
+    {
+      # FIX (MacFingerprint, statische RE von AppleA7IOP-ASCWrap-v4): SEP-Coprocessor
+      # VOR TZ0 per ASC CPU_CONTROL (sep-reg0 + 0x44, Bit4=RUN) resetten. iBoot bootet
+      # den SEP schon -> SEPROM ignoriert TZ0 sonst (Stille). AP-zugaengliche ASC-MMIO,
+      # NICHT das gesperrte PMGR-Register. Details: findings/phase2d-asc-mailbox-registers.md.
+      name = "sep-cpu-reset";
+      patch = ./sep-cpu-reset.patch;
+    }
   ];
   # iomem=relaxed: schaltet IO_STRICT_DEVMEM fuer nicht-EXCLUSIVE-Regionen ab,
   # damit /dev/mem die SEP-ASC-Register lesen/schreiben kann WAEHREND apple_sep
