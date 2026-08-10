@@ -113,7 +113,7 @@
     apple = {
       allowUnsupported.enable = false;
       x86Emulation.enable = true;
-      steam.enable = true;
+      steam.enable = false;
       batteryPerformance.enable = false;
     };
 
