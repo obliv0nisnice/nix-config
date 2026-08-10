@@ -21,7 +21,7 @@ non-exclusive iomap() (plain ioremap, no request_mem_region) so it does not conf
 the apple-mailbox driver. The one-shot mapping is released right after the reset.
 --- a/drivers/soc/apple/sep.rs
 +++ b/drivers/soc/apple/sep.rs
-@@ -371,6 +371,27 @@
+@@ -371,6 +371,32 @@
              },
          )?;
          *data.mbox.lock() = Some(Mailbox::new_byname(pdev.as_ref(), c"mbox", data.clone())?);
@@ -30,7 +30,7 @@ the apple-mailbox driver. The one-shot mapping is released right after the reset
 +        // TZ0 below and the SEP stays silent. macOS (AppleA7IOP-ASCWrap-v4
 +        // _runCPU/stopCPU) restarts the CPU via ASC CPU_CONTROL at reg0
 +        // (sep@396400000) + 0x44, bit4 (0x10) = RUN. AP-accessible ASC MMIO, NOT
-+        // the AP-locked PMGR reset register.
++        // the AP-locked PMGR reset register. (Diagnostic: read back the register.)
 +        {
 +            use kernel::io::Io; // try_read32/try_write32 live on the Io trait
 +            const ASC_CPU_CONTROL: usize = 0x44;
@@ -38,13 +38,18 @@ the apple-mailbox driver. The one-shot mapping is released right after the reset
 +            let iomem = request.iomap();
 +            let iomem = KBox::pin_init(iomem, GFP_KERNEL)?;
 +            let io = iomem.access(pdev.as_ref())?;
-+            // stopCPU: clear RUN (bit4) + bit5
-+            let v = io.try_read32(ASC_CPU_CONTROL)?;
-+            io.try_write32(v & !0x30, ASC_CPU_CONTROL)?;
-+            // runCPU: set RUN (bit4) -> SEP restarts into SEPROM, ready for TZ0
-+            let v = io.try_read32(ASC_CPU_CONTROL)?;
-+            io.try_write32(v | 0x10, ASC_CPU_CONTROL)?;
-+            dev_info!(pdev.as_ref(), "SEP: ASC CPU reset (CPU_CONTROL+0x44 RUN) before TZ0");
++            let before = io.try_read32(ASC_CPU_CONTROL)?;
++            io.try_write32(before & !0x30, ASC_CPU_CONTROL)?; // stopCPU: clear RUN(bit4)+bit5
++            let stopped = io.try_read32(ASC_CPU_CONTROL)?;
++            io.try_write32((before & !0x30) | 0x10, ASC_CPU_CONTROL)?; // runCPU: set RUN(bit4)
++            let running = io.try_read32(ASC_CPU_CONTROL)?;
++            dev_info!(
++                pdev.as_ref(),
++                "SEP: CPU_CONTROL+0x44 before={:#x} stopped={:#x} running={:#x} (reset before TZ0)",
++                before,
++                stopped,
++                running
++            );
 +        }
          data.start()?;
          Ok(Self(data))
