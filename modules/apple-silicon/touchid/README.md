@@ -28,8 +28,11 @@ für Touch ID drauf implementieren. Vollständige RE/Register-Map: `~/Projects/M
 (`findings/phase2d-asc-mailbox-registers.md`, `PROGRESS.md`).
 
 ## Testen
+Kernel = `asahi-7.1.5-2` (flake nixMac). `sep-cpu-reset.patch` ist gegen genau diese sep.rs +
+die 4 vorherigen Patches rebased; alle 5 applizieren in Reihenfolge sauber (dry-run verifiziert).
 ```
-sudo nixos-rebuild boot --flake /home/oblivion/NixOS#macbook   # baut linux-asahi (dauert)
+sudo nixos-rebuild boot --flake /home/oblivion/nix-config#macbook   # baut linux-asahi (dauert)
+# (oder dein üblicher `nh`-Weg). Flake liegt in ~/nix-config, NICHT ~/NixOS.
 # reboot in NixOS, dann:
 sudo dmesg | grep -iE "SEP|sep:"        # "ASC CPU reset ... before TZ0" + TZ0 + evtl. ACKs
 ```
