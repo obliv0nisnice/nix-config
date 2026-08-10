@@ -21,34 +21,31 @@ non-exclusive iomap() (plain ioremap, no request_mem_region) so it does not conf
 the apple-mailbox driver. The one-shot mapping is released right after the reset.
 --- a/drivers/soc/apple/sep.rs
 +++ b/drivers/soc/apple/sep.rs
-@@ -371,6 +371,32 @@
+@@ -371,6 +371,29 @@
              },
          )?;
          *data.mbox.lock() = Some(Mailbox::new_byname(pdev.as_ref(), c"mbox", data.clone())?);
-+        // MacFingerprint (Touch ID RE): reset the SEP coprocessor CPU before TZ0.
-+        // iBoot already booted the SEP (SEPFW running) -> its SEPROM ignores the
-+        // TZ0 below and the SEP stays silent. macOS (AppleA7IOP-ASCWrap-v4
-+        // _runCPU/stopCPU) restarts the CPU via ASC CPU_CONTROL at reg0
-+        // (sep@396400000) + 0x44, bit4 (0x10) = RUN. AP-accessible ASC MMIO, NOT
-+        // the AP-locked PMGR reset register. (Diagnostic: read back the register.)
++        // MacFingerprint (Touch ID RE): SURVEY reg0 to locate the SEP CPU-control /
++        // check power. reg0+0x44 read back 0x0 (write ineffective) -> either wrong
++        // offset/range or the SEP register island is unpowered (unpowered MMIO reads 0).
++        // Mailbox control lives at mbox(=reg0+0x8000)+0x110/0x114 -> reg0+0x8110/0x8114;
++        // if those are non-zero the block is powered (then 0x44 is simply the wrong reg).
 +        {
-+            use kernel::io::Io; // try_read32/try_write32 live on the Io trait
-+            const ASC_CPU_CONTROL: usize = 0x44;
++            use kernel::io::Io;
 +            let request = pdev.io_request_by_index(0).ok_or(EIO)?;
 +            let iomem = request.iomap();
 +            let iomem = KBox::pin_init(iomem, GFP_KERNEL)?;
 +            let io = iomem.access(pdev.as_ref())?;
-+            let before = io.try_read32(ASC_CPU_CONTROL)?;
-+            io.try_write32(before & !0x30, ASC_CPU_CONTROL)?; // stopCPU: clear RUN(bit4)+bit5
-+            let stopped = io.try_read32(ASC_CPU_CONTROL)?;
-+            io.try_write32((before & !0x30) | 0x10, ASC_CPU_CONTROL)?; // runCPU: set RUN(bit4)
-+            let running = io.try_read32(ASC_CPU_CONTROL)?;
 +            dev_info!(
 +                pdev.as_ref(),
-+                "SEP: CPU_CONTROL+0x44 before={:#x} stopped={:#x} running={:#x} (reset before TZ0)",
-+                before,
-+                stopped,
-+                running
++                "SEP survey reg0: +0x00={:#x} +0x44={:#x} +0x100={:#x} +0x8000={:#x} +0x8110={:#x} +0x8114={:#x} +0x8800={:#x}",
++                io.try_read32(0x0)?,
++                io.try_read32(0x44)?,
++                io.try_read32(0x100)?,
++                io.try_read32(0x8000)?,
++                io.try_read32(0x8110)?,
++                io.try_read32(0x8114)?,
++                io.try_read32(0x8800)?
 +            );
 +        }
          data.start()?;
