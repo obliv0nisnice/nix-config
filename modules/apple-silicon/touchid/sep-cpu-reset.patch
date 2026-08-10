@@ -21,7 +21,7 @@ non-exclusive iomap() (plain ioremap, no request_mem_region) so it does not conf
 the apple-mailbox driver. The one-shot mapping is released right after the reset.
 --- a/drivers/soc/apple/sep.rs
 +++ b/drivers/soc/apple/sep.rs
-@@ -371,6 +371,26 @@
+@@ -371,6 +371,27 @@
              },
          )?;
          *data.mbox.lock() = Some(Mailbox::new_byname(pdev.as_ref(), c"mbox", data.clone())?);
@@ -32,6 +32,7 @@ the apple-mailbox driver. The one-shot mapping is released right after the reset
 +        // (sep@396400000) + 0x44, bit4 (0x10) = RUN. AP-accessible ASC MMIO, NOT
 +        // the AP-locked PMGR reset register.
 +        {
++            use kernel::io::Io; // try_read32/try_write32 live on the Io trait
 +            const ASC_CPU_CONTROL: usize = 0x44;
 +            let request = pdev.io_request_by_index(0).ok_or(EIO)?;
 +            let iomem = request.iomap();
