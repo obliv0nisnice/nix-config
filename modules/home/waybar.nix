@@ -27,6 +27,7 @@ in
             "hyprland/window"
             "pulseaudio"
             "custom/cpu"
+          ] ++ optional (host == "nvidia") "custom/gpu" ++ [
             "memory"
             "idle_inhibitor"
           ] ++ optional (host == "macbook") "custom/kbd_backlight";
@@ -84,7 +85,14 @@ in
             return-type = "json";
             tooltip = true;
           };
-          
+          "custom/gpu" = {
+            interval = 10;
+            format = "{}";
+            exec = ./scripts/gpuinfo.sh;
+            return-type = "json";
+            tooltip = true;
+          };
+
           "disk" = {
             format = " {free}";
             tooltip = true;
@@ -289,7 +297,7 @@ in
           #custom-kbd_backlight.off {
             opacity: 0.5;
           }
-          #custom-cpu {
+          #custom-cpu, #custom-gpu {
             font-weight: bold;
             margin: 4px 0px;
             margin-left: 7px;
