@@ -56,7 +56,13 @@
   # Test: Domain durchgehend an lassen, damit der SEP wach bleibt (MacFingerprint Touch ID RE).
   # clk_ignore_unused: Pendant zu pd_ignore_unused fuer Clocks. Letzter "Linux gatet
   # ungenutzte Ressource weg"-Hebel; schliesst Clock-Gating als SEP-Schlaf-Ursache aus.
-  boot.kernelParams = [ "sep.dyndbg=+p" "iomem=relaxed" "pd_ignore_unused" "clk_ignore_unused" ];
+  # UMKEHR (2026-08-10, MacFingerprint): pd_ignore_unused/clk_ignore_unused ENTFERNT.
+  # Statische RE zeigte: der SEP-CPU-Reset ist AP-seitig weder per Register (ASC-CPU-Control
+  # geschuetzt/liest 0) noch per Mailbox-Control-Msg moeglich -> einziger Reset-Hebel ist ein
+  # Power-Cycle der Domain ps_sep (SEP off->on = Kaltstart -> SEPROM -> akzeptiert TZ0). Genau
+  # das verhinderte pd_ignore_unused. Ohne die Flags cycled genpd ps_sep beim "disable-unused"
+  # (kein Consumer, sep.ko laedt spaet) ab und beim sep.ko-Probe wieder an. TEST dieser Hypothese.
+  boot.kernelParams = [ "sep.dyndbg=+p" "iomem=relaxed" ];
 
   # m1n1-Override ENTFERNT (2026-06-16): Diagnose ergab, der SEP ist auch in m1n1
   # (early UND late) tot -> iBoot legt ihn schlafen, bevor irgendein OS-Code laeuft.
