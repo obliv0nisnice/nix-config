@@ -11,31 +11,36 @@ Touch-ID-/SEP-Vorhaben für das MacBook Pro 14" M2 Pro (t6020) unter Asahi/NixOS
   `status = "okay"` und fügt einen `sep`-Alias hinzu. Der Alias ist nötig, damit
   m1n1 `dt_set_sep()` die `sepfw`-Reserved-Memory-Region + iboot/local-policy-
   Manifests injiziert — sonst scheitert das `sep.ko`-Probe mit `-EINVAL (-22)`.
-- `sep-cpu-reset.patch` — **FIX (2026-08-10):** resettet den SEP-Coprocessor VOR `MSG_BOOT_TZ0`
-  über das ASC-Register `CPU_CONTROL` (sep-reg0 `0x396400000` + `0x44`, Bit4 = RUN). Grund:
-  iBoot hat den SEP schon gebootet → seine SEPROM ignoriert TZ0 → SEP bleibt still. Der Reset
-  liegt auf **AP-zugänglicher ASC-MMIO**, NICHT dem gesperrten PMGR-Register (das crashte früher).
-  Quelle: statische RE von `AppleA7IOP-ASCWrap-v4` (`_runCPU`/`stopCPU`).
+- `sep-getstatus-handshake.patch` — **⭐ FIX (2026-08-13, LIVE auf M1/t8103 via m1n1-Proxy
+  bestätigt):** sendet vor `MSG_BOOT_TZ0` einen **`GET_STATUS`-Ping (type 0x2)** und wartet auf
+  **`STATUS_OK` (0x66)** — die exakte Sequenz aus m1n1s funktionierendem `hw/sep.py::boot()`.
+  Der Asahi-Stub feuerte TZ0 **blind** → der SEP-ROM blieb still. Der SEP **antwortet** aufs
+  Boot-Protokoll (kein Reset/PMGR nötig — die frühere „CPU-reset"-These war falsch). Ablauf:
+  `start()`→GET_STATUS; STATUS_OK→TZ0; TZ0_ACK2→GET_STATUS; 2. STATUS_OK→IMG4/SHMEM.
+  Ersetzt die alten `sep-getrand-probe.patch` + `sep-cpu-reset.patch` (bleiben als Referenz im Repo).
 - `fingerprint.nix`  — `services.fprintd` (userspace). Bringt erst etwas, wenn ein
   SEP-/SBIO-Treiber existiert (Reverse-Engineering, offen).
 
 ## Status (Kurzfassung)
-SEP-Node aktiviert + `dt_set_sep()`-Injektion via Alias. **Neu: `sep-cpu-reset.patch`** soll die
-bisherige Stille auf TZ0 beheben (SEP-CPU-Reset vor dem Boot-Handshake). **Zu testen:** bauen +
-booten, dann im `sep`-dyndbg-Log prüfen, ob nach „ASC CPU reset … before TZ0" jetzt eine SEP-
-Antwort (TZ0_ACK1/ACK2 = type 0x69/0xD2 über `sep-trace-rx`) kommt. Danach SBIO-Endpoint (0x08)
-für Touch ID drauf implementieren. Vollständige RE/Register-Map: `~/Projects/MacFingerprint`
-(`findings/phase2d-asc-mailbox-registers.md`, `PROGRESS.md`).
+SEP-Node aktiviert + `dt_set_sep()`-Injektion via Alias. **Neu: `sep-getstatus-handshake.patch`**
+behebt die Stille auf TZ0: der SEP will vor TZ0 einen `GET_STATUS`-Ping + `STATUS_OK`. Live auf
+einem M1 (t8103) über den m1n1-Proxy als funktionierende Sequenz bewiesen. **Zu testen am M2:**
+bauen + booten, dann im `sep`-dyndbg-Log prüfen, ob der SEP jetzt antwortet. SBIO-Endpoint (0x08)
+für Touch ID ist ein separates, offenes RE-Projekt (SEPOS advertised ihn erst on-demand). Volle RE:
+`~/Projects/MacFingerprint` (`findings/phase3a-m1n1-sep-vs-asahi.md`, `PROGRESS.md`).
 
-## Testen
-Kernel = `asahi-7.1.5-2` (flake nixMac). `sep-cpu-reset.patch` ist gegen genau diese sep.rs +
-die 4 vorherigen Patches rebased; alle 5 applizieren in Reihenfolge sauber (dry-run verifiziert).
+## Testen (am M2)
+Kernel = `asahi-7.1.5-2` (flake nixMac). `sep-getstatus-handshake.patch` ist gegen 7.1.5-sep.rs +
+die 3 Trace-Patches (discover-log/trace-rx/trace-tx) rebased; alle applizieren sauber (dry-run ok).
 ```
 sudo nixos-rebuild boot --flake /home/oblivion/nix-config#macbook   # baut linux-asahi (dauert)
 # (oder dein üblicher `nh`-Weg). Flake liegt in ~/nix-config, NICHT ~/NixOS.
 # reboot in NixOS, dann:
-sudo dmesg | grep -iE "SEP|sep:"        # "ASC CPU reset ... before TZ0" + TZ0 + evtl. ACKs
+sudo dmesg | grep -iE "SEP (TX|RX)|Got endpoint|Unknown boot"
 ```
-Erwartung bei Erfolg: nach dem CPU-Reset beantwortet der SEP TZ0 (RX 0x69/0xD2), dann läuft der
-IMG4/SET_SHMEM-Handshake. Bleibt es still → `phase2d`-„zu verifizieren" durchgehen (reg0-vs-reg1,
-Bit-Semantik, ggf. kleine Verzögerung nach runCPU).
+Erwartung bei Erfolg (Log-Reihenfolge):
+`SEP TX: GET_STATUS` → `SEP RX: ep=0xff type=0x66` (STATUS_OK) → `SEP TX: boot TZ0` →
+`SEP RX 0x69`/`0xd2` → 2. `GET_STATUS`/`0x66` → `SEP TX: boot IMG4`+`set shmem` → `RX 0x6a` →
+`Got endpoint ...` (Discovery). **Bleibt es schon bei GET_STATUS still** → der SEP antwortet auf
+diesem t6020 gar nicht; dann zuerst m1n1-Proxy `sep.boot()` am M2 gegentesten (boot.bin-Swap auf
+den debugusb-Build, wie beim M1), bevor weiter am Treiber gedreht wird.

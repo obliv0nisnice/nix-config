@@ -1,0 +1,107 @@
+SEP boot fix: GET_STATUS handshake before TZ0 (and before IMG4).
+
+MacFingerprint Touch ID RE. Kernel AsahiLinux/linux asahi-7.1.5-2 (drivers/soc/apple/sep.rs).
+Applies AFTER sep-discover-log / sep-trace-rx / sep-trace-tx (replaces the old
+sep-getrand-probe + sep-cpu-reset survey patches).
+
+Root cause (proven live on an M1/t8103 via m1n1 proxy hw/sep.py): the SEP boot ROM
+answers the boot protocol, but m1n1s working boot() pings GET_STATUS (type 0x2) and
+waits for STATUS_OK (0x66) BEFORE sending TZ0 (and again before IMG4). The Asahi stub
+fired TZ0 blind -> the ROM stayed silent. This adds the two-stage GET_STATUS handshake:
+start() sends GET_STATUS; on STATUS_OK send TZ0; on TZ0_ACK2 send GET_STATUS again;
+on the 2nd STATUS_OK load firmware + shmem (IMG4 / SET_SHMEM as before).
+
+--- a/drivers/soc/apple/sep.rs
++++ b/drivers/soc/apple/sep.rs
+@@ -5,7 +5,7 @@
+ //!
+ //! Copyright (C) The Asahi Linux Contributors
+ 
+-use core::sync::atomic::{AtomicBool, Ordering};
++use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
+ 
+ use kernel::{
+     bindings, c_str, device, dma, module_platform_driver, new_mutex, of, platform,
+@@ -17,6 +17,8 @@
+ };
+ 
+ const SHMEM_SIZE: usize = 0x30000;
++const MSG_GET_STATUS: u64 = 0x2;
++const MSG_STATUS_OK: u64 = 0x66;
+ const MSG_BOOT_TZ0: u64 = 0x5;
+ const MSG_BOOT_IMG4: u64 = 0x6;
+ const MSG_SET_SHMEM: u64 = 0x18;
+@@ -156,6 +158,11 @@
+     shmem: ShMem,
+     region_params: FwRegionParams,
+     fw_mapped: AtomicBool,
++    // MacFingerprint (Touch ID RE): SEP-Boot-Handshake-Stufe. m1n1s hw/sep.py boot()
++    // pingt GET_STATUS und erwartet STATUS_OK VOR TZ0 (und nochmal vor IMG4); der
++    // Asahi-Stub feuerte TZ0 blind -> SEP still. 0=warte auf 1. OK (->TZ0), 1=TZ0 gesendet,
++    // 2=warte auf 2. OK (->IMG4), 3=IMG4 gesendet. Live auf M1 (t8103) verifizierte Sequenz.
++    boot_stage: AtomicU8,
+ }
+ 
+ impl SepData {
+@@ -170,11 +177,28 @@
+                 mbox <- new_mutex!(None),
+                 region_params,
+                 fw_mapped: AtomicBool::new(false),
++                boot_stage: AtomicU8::new(0),
+             }),
+             GFP_KERNEL,
+         )
+     }
+     fn start(&self) -> Result<()> {
++        // FIX (MacFingerprint): NICHT blind TZ0 feuern, sondern erst GET_STATUS pingen
++        // und auf STATUS_OK warten (dann sendet process_boot_msg TZ0). Exakt die Sequenz
++        // aus m1n1 hw/sep.py::boot(), live auf M1 als funktionierend bestaetigt.
++        self.send_get_status()
++    }
++    fn send_get_status(&self) -> Result<()> {
++        dev_info!(self.dev, "SEP TX: GET_STATUS (ep={:#x} type={:#x})", EP_BOOT, MSG_GET_STATUS);
++        self.mbox.lock().as_ref().unwrap().send(
++            Message {
++                msg0: EP_BOOT | (MSG_GET_STATUS << MSG_TYPE_SHIFT),
++                msg1: 0,
++            },
++            false,
++        )
++    }
++    fn send_tz0(&self) -> Result<()> {
+         dev_info!(self.dev, "SEP TX: boot TZ0 (ep={:#x} type={:#x})", EP_BOOT, MSG_BOOT_TZ0);
+         self.mbox.lock().as_ref().unwrap().send(
+             Message {
+@@ -224,11 +248,29 @@
+     fn process_boot_msg(&self, msg: Message) {
+         let ty = (msg.msg0 >> MSG_TYPE_SHIFT) & MSG_TYPE_MASK;
+         match ty {
++            // GET_STATUS-Antwort: der SEPROM ist ansprechbar. Stufenweise weiter (m1n1-Sequenz):
++            // 1. OK -> TZ0 senden; 2. OK (nach TZ0-ACK2) -> Firmware/Shmem laden.
++            MSG_STATUS_OK => match self.boot_stage.load(Ordering::Relaxed) {
++                0 => {
++                    self.boot_stage.store(1, Ordering::Relaxed);
++                    if let Err(e) = self.send_tz0() {
++                        dev_err!(self.dev, "Unable to send TZ0: {:?}", e);
++                    }
++                }
++                2 => {
++                    self.boot_stage.store(3, Ordering::Relaxed);
++                    if let Err(e) = self.load_fw_and_shmem() {
++                        dev_err!(self.dev, "Unable to load firmware: {:?}", e);
++                    }
++                }
++                s => dev_warn!(self.dev, "STATUS_OK in unexpected boot stage {}", s),
++            },
+             MSG_BOOT_TZ0_ACK1 => {}
++            // TZ0 akzeptiert (ACK2): vor IMG4 nochmal GET_STATUS pingen (wie m1n1).
+             MSG_BOOT_TZ0_ACK2 => {
+-                let res = self.load_fw_and_shmem();
+-                if let Err(e) = res {
+-                    dev_err!(self.dev, "Unable to load firmware: {:?}", e);
++                self.boot_stage.store(2, Ordering::Relaxed);
++                if let Err(e) = self.send_get_status() {
++                    dev_err!(self.dev, "Unable to send 2nd GET_STATUS: {:?}", e);
+                 }
+             }
+             MSG_BOOT_IMG4_ACK => {}

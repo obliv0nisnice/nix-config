@@ -31,38 +31,25 @@
       patch = ./sep-trace-tx.patch;
     }
     {
-      # Diag: send a getrandom (EP 0xff cmd 16) before TZ0 in sep.rs start() -- the
-      # one safe point (SEP power domain on). RX type 0x74 => SEP awake at probe;
-      # silent => asleep by the time Linux can reach it (MacFingerprint Touch ID RE).
-      name = "sep-getrand-probe";
-      patch = ./sep-getrand-probe.patch;
-    }
-    {
-      # FIX (MacFingerprint, statische RE von AppleA7IOP-ASCWrap-v4): SEP-Coprocessor
-      # VOR TZ0 per ASC CPU_CONTROL (sep-reg0 + 0x44, Bit4=RUN) resetten. iBoot bootet
-      # den SEP schon -> SEPROM ignoriert TZ0 sonst (Stille). AP-zugaengliche ASC-MMIO,
-      # NICHT das gesperrte PMGR-Register. Details: findings/phase2d-asc-mailbox-registers.md.
-      name = "sep-cpu-reset";
-      patch = ./sep-cpu-reset.patch;
+      # ⭐ FIX (MacFingerprint 2026-08-13, LIVE auf M1/t8103 via m1n1-Proxy verifiziert):
+      # GET_STATUS-Handshake VOR TZ0. m1n1s funktionierender hw/sep.py::boot() pingt
+      # GET_STATUS (type 0x2) und wartet auf STATUS_OK (0x66) VOR TZ0 (und nochmal vor IMG4);
+      # der Asahi-Stub feuerte TZ0 blind -> der SEP-ROM blieb still. Der SEP ANTWORTET auf
+      # das Boot-Protokoll (kein Reset/PMGR noetig -- die alte "CPU-reset"-These war falsch).
+      # start()->GET_STATUS; STATUS_OK->TZ0; TZ0_ACK2->GET_STATUS; 2. STATUS_OK->IMG4/SHMEM.
+      # Ersetzt sep-getrand-probe + sep-cpu-reset. Details: findings/phase3a-m1n1-sep-vs-asahi.md.
+      name = "sep-getstatus-handshake";
+      patch = ./sep-getstatus-handshake.patch;
     }
   ];
-  # iomem=relaxed: schaltet IO_STRICT_DEVMEM fuer nicht-EXCLUSIVE-Regionen ab,
-  # damit /dev/mem die SEP-ASC-Register lesen/schreiben kann WAEHREND apple_sep
-  # gebunden+gepowert ist (Live-Debug der SEP-Bring-up-Sequenz, MacFingerprint).
-  # Kein Kernel-Recompile, nur Reboot. Spaeter wieder entfernen.
-  # pd_ignore_unused: genpd soll ungenutzte Power-Domains NICHT abschalten. Der sep-
-  # Treiber ist ein Modul (laedt spaet) -> beim genpd-"disable unused" hat die SEP-Domain
-  # keinen Consumer -> wuerde abgeschaltet -> SEP verliert Power (in m1n1 war er wach).
-  # Test: Domain durchgehend an lassen, damit der SEP wach bleibt (MacFingerprint Touch ID RE).
-  # clk_ignore_unused: Pendant zu pd_ignore_unused fuer Clocks. Letzter "Linux gatet
-  # ungenutzte Ressource weg"-Hebel; schliesst Clock-Gating als SEP-Schlaf-Ursache aus.
-  # UMKEHR (2026-08-10, MacFingerprint): pd_ignore_unused/clk_ignore_unused ENTFERNT.
-  # Statische RE zeigte: der SEP-CPU-Reset ist AP-seitig weder per Register (ASC-CPU-Control
-  # geschuetzt/liest 0) noch per Mailbox-Control-Msg moeglich -> einziger Reset-Hebel ist ein
-  # Power-Cycle der Domain ps_sep (SEP off->on = Kaltstart -> SEPROM -> akzeptiert TZ0). Genau
-  # das verhinderte pd_ignore_unused. Ohne die Flags cycled genpd ps_sep beim "disable-unused"
-  # (kein Consumer, sep.ko laedt spaet) ab und beim sep.ko-Probe wieder an. TEST dieser Hypothese.
-  boot.kernelParams = [ "sep.dyndbg=+p" "iomem=relaxed" ];
+  # sep.dyndbg=+p: aktiviert die dev_dbg/dev_info-Logs im sep-Treiber, damit wir den
+  # Handshake sehen: "SEP TX: GET_STATUS" -> "SEP RX: ep=0xff type=0x66" (STATUS_OK) ->
+  # "SEP TX: boot TZ0" -> RX 0x69/0xd2 -> 2. GET_STATUS/STATUS_OK -> IMG4/SHMEM -> RX 0x6a ->
+  # "Got endpoint ..." (Discovery). Bleibt bei GET_STATUS still => SEP antwortet auf diesem
+  # Geraet gar nicht (dann erst m1n1-Proxy sep.boot() gegentesten). MacFingerprint Touch ID RE.
+  # (iomem=relaxed / pd_ignore_unused entfernt: waren fuer den /dev/mem-Survey bzw. die
+  #  widerlegte Power-Cycle-These -- der SEP braucht keinen Reset, nur den GET_STATUS-Ping.)
+  boot.kernelParams = [ "sep.dyndbg=+p" ];
 
   # m1n1-Override ENTFERNT (2026-06-16): Diagnose ergab, der SEP ist auch in m1n1
   # (early UND late) tot -> iBoot legt ihn schlafen, bevor irgendein OS-Code laeuft.
