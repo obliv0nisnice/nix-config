@@ -16,15 +16,6 @@ let
       "test_all_handlers[filesystem.yaffs]"
     ];
   });
-
-  # claude-code is published as per-arch prebuilt binaries; aarch64 needs the arm64 tarball.
-  claudeCodeArm = pkgs.claude-code.overrideAttrs {
-    version = "2.1.170";
-    src = pkgs.fetchurl {
-      url = "https://downloads.claude.ai/claude-code-releases/2.1.170/linux-arm64/claude";
-      sha256 = "sha256-G7nQMkQKdVMvfdTK+8aH8iCq8Wxj66F+GS377C8EvSU=";
-    };
-  };
 in
 {
   programs = {
@@ -100,6 +91,9 @@ in
       gnumake
       rofimoji # emoji picker (replaces the old emoji.nix home module)
       typst
+
+      claude-code
+      discordo
       
     ]
     # ---- x86-only base (pentest / mobile / gamedev tooling that doesn't target aarch64) ----
@@ -133,21 +127,12 @@ in
       remmina
       openvpn
       
-      claude-code
-        #(claude-code.overrideAttrs {
-        # version = "2.1.170";
-        # src = fetchurl {
-        #   url = "https://downloads.claude.ai/claude-code-releases/2.1.170/linux-x64/claude";
-      #   sha256 = "sha256-hJ4AcnegRCqydXDT49bUN4dQeUZZDo3RlH5aObcIH54=";
-      #   };
-      # })
     ]
 
     # ---- aarch64-only base (Apple-Silicon known-good extras) ----
     ++ lib.optionals isAarch64 [
       coreutils-full
       libdrm
-      claudeCodeArm
     ]
     # ---- desktop tools shared across arches ----
     ++ lib.optionals config.machineProfiles.desktop.enable [

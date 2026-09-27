@@ -3,10 +3,28 @@
   lib,
   host,
   config,
+  osConfig,
   ...
 }: let
   betterTransition = "all 0.3s cubic-bezier(.55,-0.68,.48,1.682)";
   inherit (import ../../hosts/${host}/variables.nix) clock24h;
+
+  # GPU-Anzeige nur auf dem PC (Host "nvidia"). nvidia-smi kommt direkt aus dem
+  # installierten Treiberpaket, damit das Skript nicht vom PATH des
+  # Waybar-Services abhängt.
+  showGpu = host == "nvidia";
+  gpuinfo = pkgs.writeShellApplication {
+    name = "gpuinfo";
+    runtimeInputs = [ pkgs.jq osConfig.hardware.nvidia.package.bin ];
+    text = builtins.readFile ./scripts/gpuinfo.sh;
+  };
+
+  # VPN-Status auf allen Hosts – damit man immer sieht, falls eins aktiv ist.
+  vpninfo = pkgs.writeShellApplication {
+    name = "vpninfo";
+    runtimeInputs = with pkgs; [ iproute2 jq networkmanager coreutils gnugrep ];
+    text = builtins.readFile ./scripts/vpninfo.sh;
+  };
 in
   with lib; {
     # Configure & Theme Waybar
@@ -18,7 +36,7 @@ in
         targets = [ "hyprland-session.target" ];
       };
       settings = [
-        {
+        ({
           layer = "top";
           position = "top";
           modules-center = ["hyprland/workspaces"];
@@ -27,7 +45,7 @@ in
             "hyprland/window"
             "pulseaudio"
             "custom/cpu"
-          ] ++ optional (host == "nvidia") "custom/gpu" ++ [
+          ] ++ optional showGpu "custom/gpu" ++ [
             "memory"
             "idle_inhibitor"
           ] ++ optional (host == "macbook") "custom/kbd_backlight";
@@ -36,6 +54,7 @@ in
             "custom/nvimbindings"
             "custom/notification"
             "custom/exit"
+            "custom/vpn"
             "battery"
             "power-profiles-daemon"
             "tray"
@@ -50,8 +69,8 @@ in
               urgent = " ";
             };
             ignore-workspaces = [ "^11$" ];
-            on-scroll-up = "hyprctl dispatch workspace e+1";
-            on-scroll-down = "hyprctl dispatch workspace e-1";
+            on-scroll-up = "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e+1\" })'";
+            on-scroll-down = "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e-1\" })'";
           };
           "clock" = {
             format =
@@ -85,10 +104,19 @@ in
             return-type = "json";
             tooltip = true;
           };
+        } // optionalAttrs showGpu {
           "custom/gpu" = {
             interval = 10;
             format = "{}";
-            exec = ./scripts/gpuinfo.sh;
+            exec = "${gpuinfo}/bin/gpuinfo";
+            return-type = "json";
+            tooltip = true;
+          };
+        } // {
+          "custom/vpn" = {
+            interval = 5;
+            format = "{}";
+            exec = "${vpninfo}/bin/vpninfo";
             return-type = "json";
             tooltip = true;
           };
@@ -227,7 +255,7 @@ in
               power-saver = "󰾆";
               };
             };
-        }
+        })
       ];
       style = concatStrings [
         ''
@@ -307,6 +335,12 @@ in
             border-radius: 24px 10px 24px 10px;
             border: 2px solid #${config.lib.stylix.colors.base0D};
           }
+          #custom-gpu.medium {
+            border-color: #${config.lib.stylix.colors.base0A};
+          }
+          #custom-gpu.high, #custom-gpu.error {
+            border-color: #${config.lib.stylix.colors.base08};
+          }
           #custom-startmenu {
             color: #${config.lib.stylix.colors.base0B};
             background: #${config.lib.stylix.colors.base02};
@@ -316,7 +350,7 @@ in
             border-radius: 0px 0px 40px 0px;
           }
           #custom-hyprbindings, #custom-nvimbindings, #network, #battery, #power-profiles-daemon,
-          #custom-notification, #tray, #custom-exit {
+          #custom-notification, #tray, #custom-exit, #custom-vpn {
             font-weight: bold;
             background: #${config.lib.stylix.colors.base0F};
             color: #${config.lib.stylix.colors.base00};
@@ -324,6 +358,13 @@ in
             margin-right: 7px;
             border-radius: 10px 24px 10px 24px;
             padding: 0px 18px;
+          }
+          #custom-vpn.active {
+            color: #${config.lib.stylix.colors.base0B};
+            background: #${config.lib.stylix.colors.base01};
+          }
+          #custom-vpn.inactive {
+            opacity: 0.45;
           }
           #clock {
             font-weight: bold;
