@@ -93,7 +93,6 @@ in
       typst
 
       claude-code
-      discordo
       
     ]
     # ---- x86-only base (pentest / mobile / gamedev tooling that doesn't target aarch64) ----
