@@ -212,6 +212,9 @@ in {
 
       # Reihenfolge ist relevant: bei Konflikten gewinnt die letzte passende Regel.
       window_rule = [
+        # Maximize-Anfragen der Apps ignorieren, sonst wird das erste Fenster
+        # eines Workspaces maximiert und neue Fenster kacheln nicht daneben.
+        { name = "suppress-maximize-events"; match.class = ".*"; suppress_event = "maximize"; }
         { match = { class = "discord"; fullscreen = false; }; opacity = "0.85"; }
 
         # Tags

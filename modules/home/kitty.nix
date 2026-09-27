@@ -13,8 +13,7 @@
       scrollback_lines = 10000;
       enable_audio_bell = false;
       mouse_hide_wait = 60;
-
-      background_opacity = lib.mkForce "0.9";
+      background_opacity = lib.mkForce "1.0";
     };
     extraConfig = ''
       tab_bar_style fade
