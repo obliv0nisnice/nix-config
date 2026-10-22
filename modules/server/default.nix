@@ -7,8 +7,8 @@
     ./audiobookshelf.nix
     ./homesuite.nix
     ./certs.nix
-    ./netbird.nix
     ./step-ca.nix
     ./git
+    ./assistant
   ];
 }

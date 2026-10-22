@@ -3,13 +3,9 @@
 with lib;
 
 let
-  cfg = config.customConf.nasMount;
+  cfg = config.machineProfiles.network.nasMount;
 in
 {
-  options.customConf.nasMount = {
-    enable = mkEnableOption "Mount NAS CIFS share for user home directory";
-  };
-
   config = mkIf cfg.enable {
 
     fileSystems."/home/${username}/NAStalavista" = {

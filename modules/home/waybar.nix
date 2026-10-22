@@ -4,10 +4,11 @@
   host,
   config,
   osConfig,
+  vars,
   ...
 }: let
   betterTransition = "all 0.3s cubic-bezier(.55,-0.68,.48,1.682)";
-  inherit (import ../../hosts/${host}/variables.nix) clock24h;
+  inherit (vars) clock24h;
 
   # GPU-Anzeige nur auf dem PC (Host "nvidia"). nvidia-smi kommt direkt aus dem
   # installierten Treiberpaket, damit das Skript nicht vom PATH des

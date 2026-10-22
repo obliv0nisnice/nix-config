@@ -6,10 +6,11 @@
   username,
   host,
   profile,
+  vars,
   ...
 }: let
-  inherit (import ../../hosts/${host}/variables.nix) 
-  gitUsername 
+  inherit (vars)
+  gitUsername
   guiActivation;
 in {
   imports = [inputs.home-manager-unstable.nixosModules.home-manager];
@@ -18,7 +19,7 @@ in {
     useGlobalPkgs = true;
     backupFileExtension = "backup";
     extraSpecialArgs = {
-      inherit inputs username host profile;
+      inherit inputs username host profile vars;
       machineProfiles = config.machineProfiles;
     };
     users.${username} = {

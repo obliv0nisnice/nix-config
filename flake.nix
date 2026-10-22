@@ -42,7 +42,10 @@
     }:
       nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit inputs username host profile; };
+        specialArgs = {
+          inherit inputs username host profile;
+          vars = import ./hosts/${host}/variables.nix;
+        };
         modules = [ ./profiles/${profile} ] ++ extraModules;
       };
   in {

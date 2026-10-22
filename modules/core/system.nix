@@ -1,9 +1,9 @@
 {
   config,
-  host,
+  vars,
   ...
 }: let
-  inherit (import ../../hosts/${host}/variables.nix) consoleKeyMap;
+  inherit (vars) consoleKeyMap;
 in {
   nix = {
     settings = {
@@ -33,10 +33,6 @@ in {
     LC_PAPER = "en_US.UTF-8";
     LC_TELEPHONE = "en_US.UTF-8";
     LC_TIME = "en_US.UTF-8";
-  };
-  environment.variables = {
-    ZANEYOS_VERSION = "2.3";
-    ZANEYOS = "true";
   };
   console.keyMap = "${consoleKeyMap}";
   system.stateVersion = "23.11"; # Do not change!

@@ -39,8 +39,8 @@
   ];
   
   wallpapers = {
-     "eDP-1" = "Legend_of_Zelda.png";   # eingebautes MacBook-Panel
-     "DP-1" = "Itachi.jpg";         # extern, nur im Dock
+     "eDP-1" = "Legend_of_Zelda.png";   
+     "DP-1" = "Itachi.jpg";        
      "HDMI-A-1" = "grogu.jpg";
   };
 
@@ -64,7 +64,7 @@
   keyboardLayout = "de";
   consoleKeyMap = "de";
 
-  # ---- Feature toggles (bridged into machineProfiles / customConf) ----
+  # ---- Feature toggles (bridged into machineProfiles) ----
   profiles = {
     desktop = {
       enable = true;
@@ -77,6 +77,8 @@
       office.enable = true;
       desktopIntegration.enable = true;
       usbImaging.enable = true;
+      lockscreen.enable = true;
+      fingerprint.enable = true;
     };
 
     server = {
@@ -92,6 +94,15 @@
       stepCa.enable = false;
       nfsServer.enable = false;
       serverBattery.enable = false;
+      assistant = {
+        gpu.enable = false;
+        homeAssistant.enable = false;
+        voice.enable = false;
+        ollama.enable = false;
+        musicAssistant.enable = false;
+        ntfy.enable = false;
+        brainDb.enable = false;
+      };
     };
 
     network = {
@@ -99,6 +110,11 @@
       copyTools.enable = true;
       vpn.enable = true;
       networkDiscovery.enable = true;
+      netbird = {
+        enable = true;
+        autoConnect = false;
+      };
+      nasMount.enable = true;
     };
 
     security = {
@@ -118,11 +134,10 @@
     };
 
     virtualization.enable = true;
-    dev.dotnet.enable = false;
-  };
-
-  customConf = {
-    nasMount.enable = true;
-    fingerprint.enable = true;
+    dev = {
+      dotnet.enable = false;
+      mobile.enable = false;
+      gamedev.enable = false;
+    };
   };
 }

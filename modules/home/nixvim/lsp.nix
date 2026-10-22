@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, host, username, ... }:
 {
   lsp = {
     inlayHints.enable = true;
@@ -19,7 +19,7 @@
         config = {
           nixpkgs.expr = ''import <nixpkgs> { }'';
           formatting.command = [ "nixpkgs-fmt" ];
-          options.nixos.expr = ''(builtins.getFlake ("/home/kopatz/projects/github/nix-config")).nixosConfigurations.kop-pc.options'';
+          options.nixos.expr = ''(builtins.getFlake "/home/${username}/nix-config").nixosConfigurations.${host}.options'';
         };
       };
       html.enable = true;

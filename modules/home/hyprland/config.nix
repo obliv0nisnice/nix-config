@@ -1,14 +1,13 @@
 {
   lib,
   pkgs,
-  host,
   username,
   config,
   machineProfiles,
+  vars,
   ...
 }:
 let
-  vars = import ../../../hosts/${host}/variables.nix;
   inherit
     (vars)
     browser

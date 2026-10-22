@@ -46,7 +46,7 @@
   # intelID = "PCI:1:0:0";
   # nvidiaID = "PCI:0:2:0";
 
-  # ---- Feature toggles (bridged into machineProfiles / customConf) ----
+  # ---- Feature toggles (bridged into machineProfiles) ----
   profiles = {
     desktop = {
       enable = false;
@@ -59,6 +59,8 @@
       office.enable = false;
       desktopIntegration.enable = false;
       usbImaging.enable = false;
+      lockscreen.enable = false;
+      fingerprint.enable = false;
     };
 
     server = {
@@ -74,6 +76,15 @@
       stepCa.enable = true;
       nfsServer.enable = false;
       serverBattery.enable = false;
+      assistant = {
+        gpu.enable = false;
+        homeAssistant.enable = false;
+        voice.enable = false;
+        ollama.enable = false;
+        musicAssistant.enable = false;
+        ntfy.enable = false;
+        brainDb.enable = false;
+      };
     };
 
     network = {
@@ -81,6 +92,11 @@
       copyTools.enable = true;
       vpn.enable = false;
       networkDiscovery.enable = false;
+      netbird = {
+        enable = true;
+        autoConnect = true;
+      };
+      nasMount.enable = true;
     };
 
     security = {
@@ -99,12 +115,10 @@
     };
 
     virtualization.enable = true;
-    dev.dotnet.enable = false;
-  };
-
-  customConf = {
-    nasMount.enable = true;
-    fingerprint.enable = false;
-    netbird.enable = true;
+    dev = {
+      dotnet.enable = false;
+      mobile.enable = false;
+      gamedev.enable = false;
+    };
   };
 }

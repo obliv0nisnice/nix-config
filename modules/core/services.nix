@@ -3,10 +3,10 @@
   lib,
   pkgs,
   username,
-  host,
+  vars,
   ...
 }: let
-  inherit (import ../../hosts/${host}/variables.nix) keyboardLayout;
+  inherit (vars) keyboardLayout;
 in {
   # Services to start
   services = {

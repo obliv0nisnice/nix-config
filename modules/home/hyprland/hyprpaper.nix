@@ -1,5 +1,4 @@
-{username, pkgs, host, lib, ...}: let
-  vars = import ../../../hosts/${host}/variables.nix;
+{username, pkgs, vars, lib, ...}: let
   wallpaper = vars.wallpaper or "Legend_of_Zelda.png";
   wallpapers = vars.wallpapers or { };
   dir = "/home/${username}/nix-config/wallpapers";

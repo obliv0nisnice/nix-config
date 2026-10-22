@@ -1,4 +1,4 @@
-{pkgs, profile, username, ...}:{
+{pkgs, profile, username, host, ...}:{
   programs.zsh = {
     enable = true;
     autosuggestion.enable = true;
@@ -37,7 +37,7 @@
   --use-remote-sudo \
   --option extra-platforms x86_64-linux \
   --option extra-sandbox-paths /run/binfmt";
-      os-rebuild = "sudo nixos-rebuild switch --flake /home/${username}/NixOS/#macbook --impure";
+      os-rebuild = "sudo nixos-rebuild switch --flake /home/${username}/nix-config/#${host} --impure";
       wg-on = "sudo wg-quick up /home/${username}/Documents/VPN_MixOS.conf";
       wg-off = "sudo wg-quick down /home/${username}/Documents/VPN_MixOS.conf";
       sv = "sudo nvim";

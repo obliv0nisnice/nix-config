@@ -2,13 +2,15 @@
   lib,
   pkgs,
   inputs,
+  host,
+  username,
   ...
 }:
 # https://nix-community.github.io/nixvim/NeovimOptions/index.html
 let
   # cfg = osConfig.custom.nixvimPlugins; maybe mal in sheet einbauen ob mans braucht?args
   cfg = true;
-  args = {inherit lib pkgs;};
+  args = {inherit lib pkgs host username;};
 
   importFile = file: let
     config = import file;
@@ -18,6 +20,7 @@ let
     else config;
   configs = map importFile ([
       ./config.nix
+      ./colorscheme.nix
     ]
     ++ lib.optionals cfg [
       ./auto-pairs.nix

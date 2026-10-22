@@ -30,7 +30,6 @@ in
           HTTP_ADDR = "127.0.0.1";
           HTTP_PORT = 3000;
           ROOT_URL = "https://gitea.nestlerlabs.at";
-          DOMAIN = "gitea.nestlerlabs.at";
         };
 
         service = {

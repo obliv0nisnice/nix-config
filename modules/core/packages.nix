@@ -95,37 +95,26 @@ in
       claude-code
       
     ]
-    # ---- x86-only base (pentest / mobile / gamedev tooling that doesn't target aarch64) ----
+    # ---- x86-only CLI base ----
     ++ lib.optionals isx86 [
       amfora # Fancy Terminal Browser For Gemini Protocol
       duf
       lm_sensors
       lolcat
       python3Packages.pygments
-
-      # Android / Mobile
+    ]
+    ++ lib.optionals (config.machineProfiles.dev.mobile.enable && isx86) [
       android-studio
       android-tools
       apktool
       jadx
       scrcpy
       jdk17
-
-      # GameDev
+    ]
+    ++ lib.optionals (config.machineProfiles.dev.gamedev.enable && isx86) [
       godot
       blender
       tiled
-
-      # Pentesting
-      pywhisker
-      krb5
-      (evil-winrm.override { sslLegacyProvider = true; })
-      ruby
-
-      # RemoteConnection
-      remmina
-      openvpn
-      
     ]
 
     # ---- aarch64-only base (Apple-Silicon known-good extras) ----
@@ -148,7 +137,6 @@ in
       pavucontrol
       playerctl
       ytmdl
-      floorp-bin
     ]
     # ---- x86-only desktop GUI / proprietary apps ----
     ++ lib.optionals (config.machineProfiles.desktop.enable && isx86) [
@@ -202,14 +190,21 @@ in
     ]
     ++ lib.optionals config.machineProfiles.network.vpn.enable [
       mullvad-vpn
-      netbird
       wireguard-tools
     ]
-    ++ lib.optionals config.machineProfiles.security.pentest.enable [
-      python313Packages.impacket
-      medusa
-      smtp-user-enum
-    ]
+    ++ lib.optionals config.machineProfiles.security.pentest.enable (
+      [
+        python313Packages.impacket
+        medusa
+        smtp-user-enum
+      ]
+      ++ lib.optionals isx86 [
+        pywhisker
+        krb5
+        (evil-winrm.override { sslLegacyProvider = true; })
+        ruby
+      ]
+    )
     ++ lib.optionals config.machineProfiles.security.exploitDev.enable [
       gdb
       pwntools

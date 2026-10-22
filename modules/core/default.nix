@@ -9,13 +9,13 @@
     ./nh.nix
     ./packages.nix
     ./services.nix
-    #./starfish.nix
     ./stylix.nix
     ./system.nix
     ./user.nix
     ./virtualisation.nix
     ./xdg.nix
     ./fingerprint.nix
+    ./netbird.nix
     ./NixOS-Sec-Toolbox
     inputs.stylix.nixosModules.stylix
     ./customConf

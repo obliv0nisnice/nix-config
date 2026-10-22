@@ -12,7 +12,6 @@
     ./ram.nix
     ./k3s-single-node.nix
     ./mullvad.nix
-    ./netbird.nix
     ./touchid
     #./firmware.nix
     #./gpu.nix

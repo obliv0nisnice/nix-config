@@ -1,26 +1,20 @@
 {
   config,
-  pkgs,
-  inputs,
-  system,
   lib,
+  pkgs,
   ...
 }:
 let
-  cfg = config.customConf.netbird;
+  cfg = config.machineProfiles.network.netbird;
 in
 {
-
-  options.customConf.netbird = {
-    enable = lib.mkEnableOption "Enables netbird-client";
-  };
-
   config = lib.mkIf cfg.enable {
     services.netbird.clients.wt0 = {
+      # false = Daemon läuft, verbindet sich aber erst mit `netbird-wt0 up`.
+      autoStart = cfg.autoConnect;
 
       # Automatically login to your Netbird network with a setup key
       # This is mostly useful for server computers.
-      # For manual setup instructions, see the wiki page section below.
       login = {
         enable = false;
 
@@ -43,5 +37,7 @@ in
       # This opens necessary firewall ports in the Netbird client's network interface
       openInternalFirewall = true;
     };
+
+    environment.systemPackages = [ pkgs.netbird ];
   };
 }

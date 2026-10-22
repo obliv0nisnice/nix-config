@@ -21,9 +21,7 @@
   #     "DP-1" = "Itachi.jpg";
   #     "HDMI-A-1" = "grogu.jpg";
   #   };
-  #
-  # Monitore (migriert vom früheren `extraMonitorSettings`-Roh-String –
-  # identisches Ergebnis).
+
   monitors = [
     "DP-2,2560x1440@165,0x0,1"
     "HDMI-A-1,1920x1080@60,0x-1080,1"
@@ -60,7 +58,7 @@
   intelID = "PCI:1:0:0";
   nvidiaID = "PCI:0:2:0";
 
-  # ---- Feature toggles (bridged into machineProfiles / customConf) ----
+  # ---- Feature toggles (bridged into machineProfiles) ----
   profiles = {
     desktop = {
       enable = true;
@@ -73,6 +71,8 @@
       office.enable = false;
       desktopIntegration.enable = true;
       usbImaging.enable = false;
+      lockscreen.enable = true;
+      fingerprint.enable = false;
     };
 
     server = {
@@ -88,6 +88,15 @@
       stepCa.enable = false;
       nfsServer.enable = false;
       serverBattery.enable = false;
+      assistant = {
+        gpu.enable = false;
+        homeAssistant.enable = false;
+        voice.enable = false;
+        ollama.enable = false;
+        musicAssistant.enable = false;
+        ntfy.enable = false;
+        brainDb.enable = false;
+      };
     };
 
     network = {
@@ -95,15 +104,20 @@
       copyTools.enable = true;
       vpn.enable = false;
       networkDiscovery.enable = false;
+      netbird = {
+        enable = false;
+        autoConnect = false;
+      };
+      nasMount.enable = true;
     };
 
     security = {
       enable = false;
-      pentest.enable = false;
+      pentest.enable = true;
       exploitDev.enable = false;
       reversing.enable = false;
       networkAnalysis.enable = false;
-      remoteScan.enable = false;
+      remoteScan.enable = true;
     };
 
     apple = {
@@ -113,11 +127,10 @@
     };
 
     virtualization.enable = true;
-    dev.dotnet.enable = false;
-  };
-
-  customConf = {
-    nasMount.enable = true;
-    fingerprint.enable = false;
+    dev = {
+      dotnet.enable = false;
+      mobile.enable = true;
+      gamedev.enable = true;
+    };
   };
 }
