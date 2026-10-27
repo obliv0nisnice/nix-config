@@ -91,7 +91,7 @@ in
       gnumake
       rofimoji # emoji picker (replaces the old emoji.nix home module)
       typst
-
+      yazi
       claude-code
       
     ]
