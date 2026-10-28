@@ -1,4 +1,9 @@
 {pkgs, profile, username, host, ...}:{
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+    };
+
   programs.zsh = {
     enable = true;
     autosuggestion.enable = true;
