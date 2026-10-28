@@ -87,7 +87,7 @@ in
 
     systemd.tmpfiles.rules = [
       "d ${dataRoot} 0750 gitea gitea - -"
-      "d /etc/gitea 0750 root root - -"
+      "d /etc/gitea 0750 root gitea - -"
     ];
   };
 }

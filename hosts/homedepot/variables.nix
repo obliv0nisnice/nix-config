@@ -70,6 +70,7 @@
       media.enable = true;
       audiobookshelf.enable = true;
       homesuite.enable = true;
+      itgram.enable = true;
       sonarqube.enable = true;
       gitea.enable = true;
       dependencyTrack.enable = true;

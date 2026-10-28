@@ -30,6 +30,7 @@ in
       media.enable = mkEnableOption "media services such as Jellyfin-related storage setup";
       audiobookshelf.enable = mkEnableOption "audiobookshelf container";
       homesuite.enable = mkEnableOption "HomeSuite backend service";
+      itgram.enable = mkEnableOption "ITgram content pipeline worker and database";
       sonarqube.enable = mkEnableOption "SonarQube code quality service";
       gitea.enable = mkEnableOption "Gitea self-hosted git service";
       dependencyTrack.enable = mkEnableOption "Dependency Track SBOM and vulnerability analysis";

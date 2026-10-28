@@ -6,6 +6,7 @@
     ./jellyfin.nix
     ./audiobookshelf.nix
     ./homesuite.nix
+    ./itgram.nix
     ./certs.nix
     ./step-ca.nix
     ./git

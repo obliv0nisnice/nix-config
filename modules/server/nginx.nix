@@ -8,6 +8,7 @@
 let
   websiteRoot = "/home/jakob/NixOS-Config/modules/server/Caddy/mywebsite";
   homesuiteFrontend = "/var/lib/homesuite/frontend/current";
+  itgramFrontend = "/var/lib/itgram/frontend/current";
 in
 {
   config = lib.mkIf config.machineProfiles.server.reverseProxy.enable {
@@ -132,6 +133,32 @@ in
           locations."/" = {
             proxyPass = "http://127.0.0.1:8082/";
             proxyWebsockets = true;
+          };
+        };
+      } // lib.optionalAttrs config.machineProfiles.server.itgram.enable {
+        # ITgram: API kommt in Phase 2 auf 127.0.0.1:5010, SPA danach.
+        # Bis dahin liefert der vhost 404 bzw. 502 — Zertifikat und DNS stehen schon.
+        "itgram.nestlerlabs.at" = {
+          root = itgramFrontend;
+          enableACME = true;
+          forceSSL = true;
+          locations."/api/" = {
+            proxyPass = "http://127.0.0.1:5010";
+          };
+          locations."/" = {
+            tryFiles = "$uri $uri/ /index.html";
+          };
+          # index.html nie stale cachen, sonst zeigen Clients nach einem Deploy die alte App.
+          locations."= /index.html" = {
+            extraConfig = ''
+              add_header Cache-Control "no-cache";
+            '';
+          };
+          # Vite-Assets sind content-gehasht und damit unbegrenzt cachebar.
+          locations."/assets/" = {
+            extraConfig = ''
+              add_header Cache-Control "public, max-age=31536000, immutable";
+            '';
           };
         };
       };

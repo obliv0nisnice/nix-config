@@ -43,6 +43,7 @@ services.adguardhome =  {
             # NEU
     { enabled = true; domain = "gitea.nestlerlabs.at"; answer = "192.168.1.119"; }  # NEU
     { enabled = true; domain = "dtrack.nestlerlabs.at"; answer = "192.168.1.119"; }  # NEU
+    { enabled = true; domain = "itgram.nestlerlabs.at"; answer = "192.168.1.119"; }
 	  
 	
 
