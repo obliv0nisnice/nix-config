@@ -60,6 +60,7 @@ in
       };
       nasMount.enable = mkEnableOption "the NAS CIFS mount at ~/NAStalavista";
       networkDiscovery.enable = mkEnableOption "mDNS/zeroconf network discovery";
+      torProxy.enable = onByDefault "the Tor client service and proxychains";
     };
 
     security = {
