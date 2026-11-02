@@ -8,6 +8,7 @@ My NixOS setup for several machines — Hyprland desktops, a laptop, throwaway V
 |---|---|
 | `nvidia` | Main desktop — Hyprland, GPU for games / AI |
 | `nvidia-laptop` | Laptop with Nvidia Prime |
+| `arbeit` | Work machine (Intel/Nvidia Prime) — no games, Discord or music apps |
 | `amd` / `intel` / `vm` | More machines / test boxes |
 | `homedepot` | Home server — Gitea, SonarQube, Dependency Track, Jellyfin, AdGuard, step-ca |
 | `macbook` | Apple Silicon (Asahi), aarch64 |

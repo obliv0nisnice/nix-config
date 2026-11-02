@@ -12,6 +12,8 @@ in
       enable = onByDefault "desktop modules, GUI services and graphical home-manager setup";
       gaming.enable = onByDefault "gaming stack such as Steam and 32-bit graphics support";
       communication.enable = onByDefault "communication desktop apps";
+      discord.enable = onByDefault "Discord (Vesktop on aarch64), requires communication";
+      entertainment.enable = onByDefault "music apps and tools (spotify, picard, ytmdl)";
       flatpak.enable = onByDefault "flatpak support";
       audio.enable = onByDefault "audio stack such as pipewire and rtkit";
       printing.enable = onByDefault "printing and scanner desktop integration";

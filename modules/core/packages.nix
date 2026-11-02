@@ -136,7 +136,6 @@ in
       mpv
       pavucontrol
       playerctl
-      ytmdl
     ]
     # ---- x86-only desktop GUI / proprietary apps ----
     ++ lib.optionals (config.machineProfiles.desktop.enable && isx86) [
@@ -144,15 +143,20 @@ in
       ffmpeg
       gedit
       gimp
-      picard
       v4l-utils
       nvidia-system-monitor-qt
-      spotify
       liquidctl
       flatpak
       vulkan-tools
       obs-studio
     ]
+    ++ lib.optionals (config.machineProfiles.desktop.enable && config.machineProfiles.desktop.entertainment.enable) (
+      [ ytmdl ]
+      ++ lib.optionals isx86 [
+        picard
+        spotify
+      ]
+    )
     ++ lib.optionals config.machineProfiles.virtualization.enable [
       docker-compose # Allows Controlling Docker From A Single File
       docker-client
@@ -165,9 +169,9 @@ in
         teams-for-linux
       ]
 
-      ++ lib.optionals isx86 [ (discord.override { withVencord = true; }) ]
+      ++ lib.optionals (config.machineProfiles.desktop.discord.enable && isx86) [ (discord.override { withVencord = true; }) ]
       
-      ++ lib.optionals isAarch64 [ vesktop ]
+      ++ lib.optionals (config.machineProfiles.desktop.discord.enable && isAarch64) [ vesktop ]
     )
 
     ++ lib.optionals (config.machineProfiles.desktop.gaming.enable && isx86) [

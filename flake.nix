@@ -55,6 +55,7 @@
       intel = mkHost { host = "intel"; profile = "intel"; };
       vm = mkHost { host = "vm"; profile = "vm"; };
       nvidia-laptop = mkHost { host = "nvidia-laptop"; profile = "nvidia-laptop"; };
+      arbeit = mkHost { host = "arbeit"; profile = "nvidia-laptop"; };
       homedepot = mkHost { host = "homedepot"; profile = "homedepot"; username = "jakob"; };
 
       macbook = mkHost {
